@@ -86,4 +86,5 @@ Team members, planning defaults, reminder toggles, auto-complete, and a read-out
 - **Approve for someone else?** No, by design. The audit log records who clicked.
 - **Several pieces in one project?** Yes. Each item has its own versions and rounds.
 - **Where are files?** Private cloud storage; every file request checks the signed-in user's access.
+- **Sign-in link bounces back to the sign-in page?** Corporate mail scanners pre-open links. The link now shows a Continue button; only that click signs you in.
 - **No sign-in email?** Check spam the first time. Links expire after 15 minutes.

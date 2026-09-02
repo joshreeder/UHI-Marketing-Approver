@@ -15,14 +15,21 @@ import { APPROVER_LINK_DAYS } from "@/lib/rounds-constants";
  * with a session limited to this item, logs the view, and lands on the review page.
  * Reusable until the round is superseded or 30 days after it was sent.
  */
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
+const SCANNER_UA = /safelinks|microsoft office|outlook|proofpoint|mimecast|barracuda|symantec|urldefense|headlesschrome|bot|crawler|spider|preview|slackbot|facebookexternalhit|twitterbot|linkedinbot/i;
+
+export async function GET(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
+  const ua = req.headers.get("user-agent") ?? "";
+  const looksLikeScanner = !ua || SCANNER_UA.test(ua);
   const a = await getApprovalByTokenHash(hashToken(token));
   if (!a) return NextResponse.redirect(`${env.APP_URL}/review/expired`);
 
   const item = a.round.version.item;
   const expired = a.round.status === "superseded" || addDays(a.round.sentAt, APPROVER_LINK_DAYS) < new Date();
   if (expired) return NextResponse.redirect(`${env.APP_URL}/review/expired?item=${item.id}`);
+
+  // Link scanners and preview bots: send them to the page without creating a session or logging a view.
+  if (looksLikeScanner) return NextResponse.redirect(`${env.APP_URL}/review/item/${item.id}`);
 
   const { token: sessionToken, expiresAt } = await createSession(a.userId, item.id);
 

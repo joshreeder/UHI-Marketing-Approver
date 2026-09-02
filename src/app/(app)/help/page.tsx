@@ -207,6 +207,10 @@ export default async function HelpPage() {
               <Q q="Where do the files live?">
                 In private cloud storage. Nothing is publicly downloadable; every file request checks that you are signed in and allowed to see that item.
               </Q>
+              <Q q="My sign-in link just sends me back to the sign-in screen.">
+                Company mail systems (Microsoft 365 Safe Links and similar) scan links before you click them. The sign-in link now lands on a page with a
+                <b> Continue</b> button, and only that click signs you in, so scanners cannot use it up. If you still get bounced, the link is older than 15 minutes; request a new one.
+              </Q>
               <Q q="I did not get my sign-in email.">
                 Check spam the first time; mark it “Not spam” and later mails arrive normally. Links expire after 15 minutes, so request a new one if needed.
               </Q>
