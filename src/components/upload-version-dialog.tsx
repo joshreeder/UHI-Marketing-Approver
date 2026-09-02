@@ -13,17 +13,19 @@ import { FormMessage } from "@/components/form-message";
 import { createCopyVersion, createVersion } from "@/app/(app)/items/actions";
 import { fmtBytes } from "@/lib/format";
 import { wordCount } from "@/lib/copy";
+import { canonicalMime } from "@/lib/mime";
 import { cn } from "@/lib/utils";
 
 const ACCEPT = "application/pdf,image/jpeg,image/png,image/gif,image/webp,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation";
-const MAX = 50 * 1024 * 1024;
+const MAX = 500 * 1024 * 1024;
 
 type Mode = "file" | "copy";
 
 function fileKind(f: File): string {
-  if (f.type.includes("wordprocessingml")) return "Word";
-  if (f.type.includes("presentationml")) return "PowerPoint";
-  return f.type.replace("application/", "").replace("image/", "").toUpperCase();
+  const t = canonicalMime(f.name, f.type);
+  if (t.includes("wordprocessingml")) return "Word";
+  if (t.includes("presentationml")) return "PowerPoint";
+  return t.replace("application/", "").replace("image/", "").toUpperCase();
 }
 
 export function UploadVersionDialog({
@@ -60,8 +62,11 @@ export function UploadVersionDialog({
   function pick(f: File | null | undefined) {
     setError(null);
     if (!f) return;
-    if (!ACCEPT.split(",").includes(f.type)) return setError("Only PDF, Word (.docx), PowerPoint (.pptx), JPG, PNG, GIF and WebP files are supported.");
-    if (f.size > MAX) return setError("Files must be 50 MB or smaller.");
+    const mime = canonicalMime(f.name, f.type);
+    if (!ACCEPT.split(",").includes(mime)) {
+      return setError(`“${f.name}” is not a supported type. Use PDF, Word (.docx), PowerPoint (.pptx), JPG, PNG, GIF or WebP.`);
+    }
+    if (f.size > MAX) return setError(`Files must be 500 MB or smaller (this one is ${fmtBytes(f.size)}).`);
     setFile(f);
   }
 
@@ -80,14 +85,17 @@ export function UploadVersionDialog({
       if (mode === "file") {
         if (!file) return setError("Choose a file first.");
         setBusy("uploading");
+        const mime = canonicalMime(file.name, file.type);
         const blob = await upload(`items/${itemId}/v${nextNumber}/${file.name}`, file, {
           access: "private",
           handleUploadUrl: "/api/upload",
           clientPayload: JSON.stringify({ itemId }),
+          contentType: mime,
+          multipart: file.size > 20 * 1024 * 1024,
           onUploadProgress: (p) => setProgress(p.percentage),
         });
         setBusy("saving");
-        result = await createVersion({ itemId, note, fileUrl: blob.url, fileName: file.name, mime: file.type, size: file.size });
+        result = await createVersion({ itemId, note, fileUrl: blob.url, fileName: file.name, mime, size: file.size });
       } else {
         if (!body.trim()) return setError("Paste the copy first.");
         setBusy("saving");
@@ -174,7 +182,7 @@ export function UploadVersionDialog({
               ) : (
                 <>
                   <span className="font-medium text-ink">Drop a file here or click to choose</span>
-                  <span className="text-xs text-slate">PDF, Word, PowerPoint, JPG, PNG, GIF, WebP · up to 50 MB</span>
+                  <span className="text-xs text-slate">PDF, Word, PowerPoint, JPG, PNG, GIF, WebP · up to 500 MB</span>
                 </>
               )}
             </div>

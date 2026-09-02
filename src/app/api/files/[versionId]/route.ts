@@ -29,5 +29,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ vers
   headers.set("Cache-Control", "private, max-age=300");
   const len = blob.headers.get("content-length");
   if (len) headers.set("Content-Length", len);
+  headers.set("X-Content-Type-Options", "nosniff");
   return new NextResponse(blob.stream, { headers });
 }

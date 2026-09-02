@@ -82,7 +82,7 @@ export default async function HelpPage() {
             </p>
             <ul>
               <li>
-                <b>Upload a file</b>: drag a PDF, image, Word or PowerPoint file onto the box, or click it to choose one. Up to 50 MB. PDFs show every page; images zoom.
+                <b>Upload a file</b>: drag a PDF, image, Word or PowerPoint file onto the box, or click it to choose one. Up to 500 MB, so print-ready PDFs are fine. PDFs show every page; images zoom.
                 Word files are converted to an approximate preview and the original stays downloadable. PowerPoint files are download-only for now, so export to PDF when approvers need to see slides in the browser.
               </li>
               <li>

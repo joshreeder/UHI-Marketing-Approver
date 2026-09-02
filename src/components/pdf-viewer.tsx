@@ -35,11 +35,15 @@ export function PdfViewer({ src, className, overlay }: Props) {
   return (
     <div className={className}>
       {error ? (
-        <div className="rounded-md bg-brand-red-tint px-3 py-2 text-sm text-brand-red">
-          {error}{" "}
-          <a href={src} className="underline" target="_blank" rel="noreferrer">
-            Open the PDF directly
-          </a>
+        <div className="space-y-2">
+          <p className="rounded-md bg-canvas px-3 py-2 text-xs text-slate">
+            Showing this PDF with your browser’s built-in viewer ({error}).{" "}
+            <a href={`${src}?download=1`} className="text-navy underline">
+              Download the original
+            </a>
+            .
+          </p>
+          <iframe src={src} title="PDF preview" className="h-[80vh] w-full rounded-md bg-white ring-1 ring-line" />
         </div>
       ) : null}
       {!doc && !error ? <p className="py-6 text-center text-sm text-slate">Loading preview…</p> : null}

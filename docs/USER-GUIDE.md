@@ -29,7 +29,7 @@ tracker-only project. Add more items any time from the project page.
 
 On the item page click **Add v1** (later **New version**). Two tabs:
 
-- **Upload a file** — drag a PDF, image, Word or PowerPoint file onto the box or click to choose. Up to 50 MB. Word files get an
+- **Upload a file** — drag a PDF, image, Word or PowerPoint file onto the box or click to choose. Up to 500 MB, so print-ready PDFs are fine. Word files get an
   approximate preview (original stays downloadable); PowerPoint is download-only, so export to PDF when slides must show in the browser.
 - **Paste copy** — for emails and any text needing sign-off. Paste the text, optionally add a subject line and from name, save.
   Blank lines start paragraphs. The next version opens pre-filled with the current text.
