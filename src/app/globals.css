@@ -1,0 +1,150 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "./brand-tokens.css";
+
+/* Approval Hub — "Clean Ledger" theme mapped onto United Heritage brand tokens. Light only. */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-heading: var(--font-sans);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* brand + status as Tailwind colors: bg-navy, text-status-approved, ... */
+  --color-navy: var(--uh-navy);
+  --color-navy-deep: var(--uh-navy-deep);
+  --color-navy-tint: var(--uh-navy-tint);
+  --color-brand-red: var(--uh-red);
+  --color-brand-red-tint: var(--uh-red-tint);
+  --color-ink: var(--uh-ink);
+  --color-slate: var(--uh-slate);
+  --color-muted-ink: var(--uh-muted);
+  --color-line: var(--uh-line);
+  --color-canvas: var(--uh-canvas);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: var(--radius);
+  --radius-xl: var(--radius-card);
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+  --radius-4xl: 24px;
+}
+
+:root {
+  --background: var(--uh-white);
+  --foreground: var(--uh-ink);
+  --card: var(--uh-white);
+  --card-foreground: var(--uh-ink);
+  --popover: var(--uh-white);
+  --popover-foreground: var(--uh-ink);
+  --primary: var(--uh-navy);
+  --primary-foreground: var(--uh-white);
+  --secondary: var(--uh-canvas);
+  --secondary-foreground: var(--uh-ink);
+  --muted: var(--uh-canvas);
+  --muted-foreground: var(--uh-slate);
+  --accent: var(--uh-navy-tint);
+  --accent-foreground: var(--uh-navy-deep);
+  --destructive: var(--uh-red);
+  --border: var(--uh-line);
+  --input: var(--uh-line);
+  --ring: var(--uh-navy);
+  --chart-1: var(--uh-navy);
+  --chart-2: var(--status-approved);
+  --chart-3: var(--status-in-review);
+  --chart-4: var(--status-changes);
+  --chart-5: var(--uh-muted);
+  --sidebar: var(--uh-white);
+  --sidebar-foreground: var(--uh-ink);
+  --sidebar-primary: var(--uh-navy);
+  --sidebar-primary-foreground: var(--uh-white);
+  --sidebar-accent: var(--uh-navy-tint);
+  --sidebar-accent-foreground: var(--uh-navy-deep);
+  --sidebar-border: var(--uh-line);
+  --sidebar-ring: var(--uh-navy);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    color-scheme: light;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+  }
+  h1, h2, h3, h4 {
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  strong, b {
+    font-weight: 500;
+  }
+}
+
+@layer components {
+  /* 0.5px hairlines for dense ledger tables */
+  .hairline {
+    border-width: 0.5px;
+  }
+  .hairline-b {
+    border-bottom-width: 0.5px;
+  }
+  .hairline-t {
+    border-top-width: 0.5px;
+  }
+
+  /* status pills — semantic colors, never brand red */
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap;
+  }
+  .pill-dot {
+    @apply size-1.5 rounded-full bg-current;
+  }
+  .pill-not-started { color: var(--uh-slate); background: var(--uh-canvas); }
+  .pill-in-progress { color: var(--status-in-progress); background: var(--uh-navy-tint); }
+  .pill-in-review { color: var(--status-in-review); background: var(--status-in-review-bg); }
+  .pill-changes { color: var(--status-changes); background: var(--status-changes-bg); }
+  .pill-approved { color: var(--status-approved); background: var(--status-approved-bg); }
+  .pill-done { color: var(--status-approved); background: var(--status-approved-bg); }
+  .pill-on-hold { color: var(--uh-slate); background: var(--uh-canvas); }
+  .pill-cancelled { color: var(--uh-slate); background: var(--uh-canvas); text-decoration: line-through; }
+  .pill-overdue { color: var(--uh-red); background: var(--uh-red-tint); }
+  .pill-superseded { color: var(--uh-muted); background: var(--uh-canvas); }
+  .pill-waiting { color: var(--status-in-review); background: var(--status-in-review-bg); }
+}

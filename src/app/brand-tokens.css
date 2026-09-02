@@ -1,0 +1,27 @@
+/* United Heritage Insurance — brand tokens for Approval Hub */
+:root {
+  /* From the logo */
+  --uh-navy: #004888;        /* eagle + wordmark */
+  --uh-navy-deep: #003566;   /* hover / active */
+  --uh-navy-tint: #E6EFF7;   /* selected rows, soft badges */
+  --uh-red: #E01830;         /* mountains + "Insurance" — use sparingly: overdue, destructive */
+  --uh-red-tint: #FCE8EB;
+
+  /* Neutrals */
+  --uh-ink: #1F2933;
+  --uh-slate: #52606D;
+  --uh-muted: #9AA5B1;
+  --uh-line: #E4E7EB;
+  --uh-canvas: #F7F8FA;
+  --uh-white: #FFFFFF;
+
+  /* Status — keep semantic colors separate from brand red */
+  --status-not-started: #9AA5B1;
+  --status-in-progress: #004888;
+  --status-in-review:   #B7791F;  --status-in-review-bg: #FDF3DC;
+  --status-changes:     #C53030;  --status-changes-bg:   #FCE8EB;
+  --status-approved:    #2F855A;  --status-approved-bg:  #E6F4EA;
+
+  --radius: 8px;
+  --radius-card: 12px;
+}
