@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Approval Hub
 
-## Getting Started
+Internal proof-and-approval tracker for United Heritage Insurance marketing. Designers upload
+versions of a piece (PDF or image), send them to approvers by email, and track approvals and
+change requests per version. Approvers never create accounts — the link in their email signs
+them in.
 
-First, run the development server:
+The full plan is in [docs/plan.md](docs/plan.md); the build brief is [docs/kickoff.md](docs/kickoff.md).
+
+## Stack
+
+Next.js 15 (App Router, TypeScript strict) · Tailwind v4 + shadcn/ui · Drizzle ORM on Postgres
+(Neon in production) · Vercel Blob (private) · Resend + React Email · Vercel Cron · PDF.js.
+
+## Local development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.example .env        # fill in the values below
+pnpm db:migrate             # applies ./drizzle to DATABASE_URL
+pnpm db:seed                # demo owner, designer, 2 projects, fake approvers
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Variable | Notes |
+|---|---|
+| `DATABASE_URL` | Neon (pooled) or any Postgres. Neon hosts use the HTTP driver; anything else uses node-postgres. |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob store token. Files are stored `access: private` and streamed through `/api/files/[versionId]`. |
+| `RESEND_API_KEY` | Optional locally. Without it, every email is printed to the server log (including sign-in and review links). |
+| `EMAIL_FROM` | Must be on a domain verified in Resend. |
+| `APP_URL` | Public origin, used in emails and links. |
+| `CRON_SECRET` | Vercel Cron sends it as `Authorization: Bearer …` to `/api/cron/reminders`. |
+| `SESSION_SECRET` | HMAC key for hashing session, sign-in and approver tokens. Rotating it invalidates all links. |
+| `SEED_OWNER_EMAIL` | Seed only: which email becomes the owner. |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+First sign-in: if no owner exists yet, the first person to request a sign-in link becomes the owner.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Scripts
 
-## Learn More
+`pnpm dev` · `pnpm build` · `pnpm test` (schedule math) · `pnpm typecheck` · `pnpm lint` ·
+`pnpm db:generate` (new migration from schema changes) · `pnpm db:migrate` · `pnpm db:seed` · `pnpm db:studio`
 
-To learn more about Next.js, take a look at the following resources:
+## How it fits together
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `src/lib/db/schema.ts` — tables from plan §6.4. Migrations in `drizzle/`.
+- `src/lib/schedule.ts` — `buildSchedule()`, `latestSafeStart()`, `roundsThatFit()` (unit-tested).
+- `src/lib/auth/` — hashed single-use team magic links; reusable scoped approver tokens; 30-day sessions.
+- `src/lib/rounds.ts` — start a round, supersede with a new version, reminders/nudges, record decisions.
+- `src/lib/email/` — React Email templates and the Resend sender (log fallback in dev).
+- `src/app/(app)/` — team screens: dashboard, projects, items, settings.
+- `src/app/review/` — approver entry (`/review/[token]`) and the reviewer-first page (`/review/item/[itemId]`).
+- `src/app/api/` — Blob upload tokens, private file streaming, daily reminder cron.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Every action writes an `activity` row. Approver sessions can only read and act on the item their
+link was issued for.
