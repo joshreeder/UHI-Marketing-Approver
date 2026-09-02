@@ -29,6 +29,9 @@ export const env = {
   get CRON_SECRET() {
     return process.env.CRON_SECRET ?? "";
   },
+  get RESEND_WEBHOOK_SECRET() {
+    return process.env.RESEND_WEBHOOK_SECRET ?? "";
+  },
   get BLOB_READ_WRITE_TOKEN() {
     return process.env.BLOB_READ_WRITE_TOKEN ?? "";
   },

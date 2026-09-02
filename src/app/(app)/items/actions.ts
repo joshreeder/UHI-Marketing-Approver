@@ -7,7 +7,8 @@ import { db } from "@/lib/db";
 import { comments, items, versions } from "@/lib/db/schema";
 import { requireTeam } from "@/lib/auth/session";
 import { logActivity } from "@/lib/activity";
-import { isAllowedMime, MAX_UPLOAD_BYTES } from "@/lib/blob";
+import { DOCX_MIME, isAllowedMime, MAX_UPLOAD_BYTES } from "@/lib/blob";
+import { docxToPreviewHtml } from "@/lib/docx";
 import { textToHtml } from "@/lib/copy";
 import { refreshProjectStatus } from "@/lib/queries";
 import { sendReminder, startRound, supersedeWithNewVersion } from "@/lib/rounds";
@@ -22,6 +23,7 @@ async function loadItem(itemId: string) {
 
 type VersionValues = {
   note: string;
+  previewHtml?: string | null;
   fileUrl?: string | null;
   fileName?: string | null;
   mime?: string | null;
@@ -51,6 +53,7 @@ async function insertVersion(session: Awaited<ReturnType<typeof requireTeam>>, i
       fileName: values.fileName ?? null,
       mime: values.mime ?? null,
       size: values.size ?? null,
+      previewHtml: values.previewHtml ?? null,
       emailSubject: values.emailSubject ?? null,
       emailFromName: values.emailFromName ?? null,
       emailHtml: values.emailHtml ?? null,
@@ -97,8 +100,9 @@ export async function createVersion(input: z.input<typeof versionSchema>): Promi
   const parsed = versionSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "Upload details were incomplete. Try again." };
   const d = parsed.data;
-  if (!isAllowedMime(d.mime)) return { ok: false, error: "Only PDF, JPG, PNG, GIF and WebP files are supported." };
-  return insertVersion(session, d.itemId, d);
+  if (!isAllowedMime(d.mime)) return { ok: false, error: "Only PDF, Word, PowerPoint, JPG, PNG, GIF and WebP files are supported." };
+  const previewHtml = d.mime === DOCX_MIME ? await docxToPreviewHtml(d.fileUrl) : null;
+  return insertVersion(session, d.itemId, { ...d, previewHtml });
 }
 
 const copySchema = z.object({
@@ -185,4 +189,22 @@ export async function markCommentAddressed(commentId: string, addressedInVersion
     revalidatePath(`/items/${item.id}`);
   }
   return { ok: true };
+}
+
+/** Emails the current user a copy version exactly as approvers see it, so email copy can be checked in a real inbox. */
+export async function sendTestEmail(versionId: string): Promise<ActionResult> {
+  const session = await requireTeam();
+  const [v] = await db.select().from(versions).where(eq(versions.id, versionId)).limit(1);
+  if (!v || !v.emailHtml) return { ok: false, error: "Only copy versions can be sent as a test." };
+  const item = await loadItem(v.itemId);
+  const { sendCopyTest } = await import("@/lib/email/send");
+  const r = await sendCopyTest({
+    to: session.user.email,
+    subject: v.emailSubject || `${item.title} (v${v.number}) — test`,
+    fromName: v.emailFromName,
+    html: v.emailHtml,
+  });
+  if (!r.ok) return { ok: false, error: r.error };
+  await logActivity({ projectId: item.projectId, itemId: item.id, versionId: v.id, actorId: session.user.id, type: "test_email_sent", meta: { to: session.user.email, versionNumber: v.number } });
+  return { ok: true, message: r.skipped ? "No email provider configured; the test was written to the server log." : `Test sent to ${session.user.email}.` };
 }

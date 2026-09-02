@@ -62,7 +62,7 @@ export type DashboardRow = {
 
 export type DashboardFilter = "all" | "mine" | "in_review" | "overdue" | "archived";
 
-export async function listDashboard(filter: DashboardFilter, currentUserId: string): Promise<DashboardRow[]> {
+export async function listDashboard(filter: DashboardFilter, currentUserId: string, q = ""): Promise<DashboardRow[]> {
   const archived = filter === "archived";
   const rows = await db.query.projects.findMany({
     where: archived ? isNotNull(projects.archivedAt) : isNull(projects.archivedAt),
@@ -91,8 +91,13 @@ export async function listDashboard(filter: DashboardFilter, currentUserId: stri
     : [];
   const lastMap = new Map(lastActivity.map((a) => [a.projectId, new Date(a.last)]));
 
+  const needle = q.trim().toLowerCase();
+  const matching = needle
+    ? rows.filter((p) => p.name.toLowerCase().includes(needle) || (p.description ?? "").toLowerCase().includes(needle) || p.items.some((it) => it.title.toLowerCase().includes(needle)))
+    : rows;
+
   const now = new Date();
-  const out: DashboardRow[] = rows.map((p) => {
+  const out: DashboardRow[] = matching.map((p) => {
     const snapshots = p.items.map((it) => {
       const v = it.versions[0];
       return { hasVersion: !!v, latestRound: v?.round?.status ?? null };

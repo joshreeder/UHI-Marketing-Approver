@@ -20,11 +20,12 @@ const FILTERS: { key: DashboardFilter; label: string }[] = [
   { key: "archived", label: "Archived" },
 ];
 
-export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ filter?: string; error?: string }> }) {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ filter?: string; error?: string; q?: string }> }) {
   const session = await requireTeam();
   const sp = await searchParams;
   const filter = (FILTERS.some((f) => f.key === sp.filter) ? sp.filter : "all") as DashboardFilter;
-  const rows = await listDashboard(filter, session.user.id);
+  const q = sp.q ?? "";
+  const rows = await listDashboard(filter, session.user.id, q);
 
   return (
     <>
@@ -40,11 +41,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <p className="mb-4 rounded-md bg-brand-red-tint px-3 py-2 text-sm text-brand-red">Only the owner can open Settings.</p>
       ) : null}
 
-      <div className="mb-4 flex flex-wrap gap-1">
+      <div className="mb-4 flex flex-wrap items-center gap-1">
         {FILTERS.map((f) => (
           <Link
             key={f.key}
-            href={f.key === "all" ? "/" : `/?filter=${f.key}`}
+            href={`${f.key === "all" ? "/" : `/?filter=${f.key}`}${q ? `${f.key === "all" ? "?" : "&"}q=${encodeURIComponent(q)}` : ""}`}
             className={cn(
               "rounded-md px-3 py-1.5 text-sm",
               f.key === filter ? "bg-white text-ink font-medium shadow-sm ring-1 ring-line" : "text-slate hover:text-ink",
@@ -53,13 +54,23 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             {f.label}
           </Link>
         ))}
+        <form className="ml-auto flex items-center gap-1" action="/">
+          {filter !== "all" ? <input type="hidden" name="filter" value={filter} /> : null}
+          <input
+            type="search"
+            name="q"
+            defaultValue={q}
+            placeholder="Search projects and items"
+            className="h-8 w-56 rounded-lg border border-input bg-white px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          />
+        </form>
       </div>
 
       {rows.length === 0 ? (
         <EmptyState
-          title={filter === "all" ? "No projects yet" : "Nothing here"}
-          description={filter === "all" ? "Create a project to start tracking a marketing piece." : "Try a different filter."}
-          action={filter === "all" ? <Button nativeButton={false} render={<Link href="/projects/new" />}>New project</Button> : undefined}
+          title={q ? `No matches for “${q}”` : filter === "all" ? "No projects yet" : "Nothing here"}
+          description={q ? "Try another word, or clear the search." : filter === "all" ? "Create a project to start tracking a marketing piece." : "Try a different filter."}
+          action={filter === "all" && !q ? <Button nativeButton={false} render={<Link href="/projects/new" />}>New project</Button> : undefined}
         />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-line bg-white">

@@ -91,9 +91,11 @@ export async function startRound(input: StartRoundInput): Promise<{ roundId: str
   const Template = input.template === "new_version" ? NewVersionEmail : ApprovalRequestEmail;
   const failed: string[] = [];
   for (const u of approverUsers) {
+    const approvalRow = await db.select({ id: approvals.id }).from(approvals).where(and(eq(approvals.roundId, round.id), eq(approvals.userId, u.id))).limit(1);
     const result = await sendEmail({
       to: u.email,
       replyTo: input.actor.email,
+      tags: approvalRow[0] ? { approval_id: approvalRow[0].id, kind: input.template === "new_version" ? "new_version" : "request" } : undefined,
       subject:
         input.template === "new_version"
           ? `New version ready — ${item.title} v${version.number}`
@@ -189,6 +191,7 @@ export async function sendReminder(
   const result = await sendEmail({
     to: a.user.email,
     replyTo: opts.actor?.email,
+    tags: { approval_id: a.id, kind: "reminder" },
     subject: `${overdue ? "Overdue" : "Reminder"}: ${item.title} is waiting on your approval`,
     react: ReminderEmail({
       projectName: item.project.name,

@@ -15,10 +15,16 @@ import { fmtBytes } from "@/lib/format";
 import { wordCount } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 
-const ACCEPT = "application/pdf,image/jpeg,image/png,image/gif,image/webp";
+const ACCEPT = "application/pdf,image/jpeg,image/png,image/gif,image/webp,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation";
 const MAX = 50 * 1024 * 1024;
 
 type Mode = "file" | "copy";
+
+function fileKind(f: File): string {
+  if (f.type.includes("wordprocessingml")) return "Word";
+  if (f.type.includes("presentationml")) return "PowerPoint";
+  return f.type.replace("application/", "").replace("image/", "").toUpperCase();
+}
 
 export function UploadVersionDialog({
   itemId,
@@ -54,7 +60,7 @@ export function UploadVersionDialog({
   function pick(f: File | null | undefined) {
     setError(null);
     if (!f) return;
-    if (!ACCEPT.split(",").includes(f.type)) return setError("Only PDF, JPG, PNG, GIF and WebP files are supported.");
+    if (!ACCEPT.split(",").includes(f.type)) return setError("Only PDF, Word (.docx), PowerPoint (.pptx), JPG, PNG, GIF and WebP files are supported.");
     if (f.size > MAX) return setError("Files must be 50 MB or smaller.");
     setFile(f);
   }
@@ -161,14 +167,14 @@ export function UploadVersionDialog({
                 <>
                   <span className="font-medium text-ink">{file.name}</span>
                   <span className="text-xs text-slate">
-                    {fmtBytes(file.size)} · {file.type.replace("application/", "").replace("image/", "").toUpperCase()}
+                    {fmtBytes(file.size)} · {fileKind(file)}
                   </span>
                   <span className="mt-1 text-xs text-slate">Drop another file to replace it</span>
                 </>
               ) : (
                 <>
                   <span className="font-medium text-ink">Drop a file here or click to choose</span>
-                  <span className="text-xs text-slate">PDF, JPG, PNG, GIF, WebP · up to 50 MB</span>
+                  <span className="text-xs text-slate">PDF, Word, PowerPoint, JPG, PNG, GIF, WebP · up to 50 MB</span>
                 </>
               )}
             </div>

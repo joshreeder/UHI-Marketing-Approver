@@ -28,6 +28,7 @@ export function ApproversList({ round, canNudge, highlightUserId }: { round: Rou
                     ? `Nudged ${a.reminderCount}× · last ${fmtRelative(a.lastEmailedAt)}`
                     : `Sent ${fmtRelative(a.lastEmailedAt ?? round.sentAt)}`
                   : `${a.status === "approved" ? "Approved" : "Requested changes"} ${fmtDateTime(a.decidedAt)}`}
+                {a.status === "waiting" && a.emailOpenedAt ? ` · Opened email ${fmtRelative(a.emailOpenedAt)}` : ""}
               </div>
             </div>
             <ApprovalPill status={a.status} />

@@ -2,7 +2,9 @@ import "server-only";
 import { get, put } from "@vercel/blob";
 import { env } from "@/lib/env";
 
-export const ALLOWED_UPLOAD_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/gif", "image/webp"] as const;
+export const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+export const PPTX_MIME = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+export const ALLOWED_UPLOAD_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/gif", "image/webp", DOCX_MIME, PPTX_MIME] as const;
 export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 
 export function isAllowedMime(mime: string | null | undefined): boolean {

@@ -8,6 +8,7 @@ import { AnnotatedPreview, commentsToPins } from "@/components/annotated-preview
 import { SendForApprovalForm } from "@/components/send-for-approval-form";
 import { RoundPill } from "@/components/status-pill";
 import { UploadVersionDialog } from "@/components/upload-version-dialog";
+import { SendTestButton } from "@/components/send-test-button";
 import { VersionHistory } from "@/components/version-history";
 import { requireTeam } from "@/lib/auth/session";
 import { getItemDetail, listPastApproverEmails } from "@/lib/queries";
@@ -90,6 +91,8 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                   <Button variant="ghost" size="xs" nativeButton={false} render={<a href={`/api/files/${current.id}?download=1`} />}>
                     Download
                   </Button>
+                ) : isCopyVersion(current) ? (
+                  <SendTestButton versionId={current.id} />
                 ) : null}
               </div>
               {current.note ? <p className="mt-3 rounded-lg bg-canvas px-3 py-2 text-sm text-ink">{current.note}</p> : null}

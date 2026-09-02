@@ -22,7 +22,9 @@ export type ActivityType =
   | "comment_addressed"
   | "nudged"
   | "reminder_sent"
-  | "email_failed";
+  | "email_failed"
+  | "test_email_sent"
+  | "email_opened";
 
 export async function logActivity(input: {
   projectId: string;
@@ -93,6 +95,10 @@ export function describeActivity(a: {
       return `Reminder sent to ${target}`;
     case "email_failed":
       return `Email to ${target} failed`;
+    case "test_email_sent":
+      return `${who} sent a test email of ${v} to ${typeof m.to === "string" ? m.to : "themselves"}`;
+    case "email_opened":
+      return `${who} opened the email for ${v}`;
     default:
       return a.type.replace(/_/g, " ");
   }
