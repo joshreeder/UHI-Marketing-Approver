@@ -22,9 +22,13 @@ Every push to `main` deploys production; PRs get preview deployments.
    ```
    Until then, emails are written to the function logs instead of being sent.
 
-2. **Custom domain** (optional): add e.g. `approvals.unitedheritage.com` in Vercel → Domains, then update `APP_URL`.
+2. **Email open tracking (optional)**: in Resend → Webhooks add an endpoint `https://uhi-approval-hub.vercel.app/api/webhooks/resend`
+   for the events `email.opened` and `email.clicked`, copy its signing secret (`whsec_…`) and add it as `RESEND_WEBHOOK_SECRET`
+   on production. Approvers then show “Opened email …” on the item page.
 
-3. **Owner account**: the seed made josh.reeder@riverence.com the owner. Add the marketing manager under Settings → Team members
+3. **Custom domain** (optional): add e.g. `approvals.unitedheritage.com` in Vercel → Domains, then update `APP_URL`.
+
+4. **Owner account**: the seed made josh.reeder@riverence.com the owner. Add the marketing manager under Settings → Team members
    as an owner, then remove yourself if you like. When you want to wipe the demo data, re-run `pnpm db:seed` with
    `SEED_OWNER_EMAIL` set to her email — it deletes the demo projects and recreates them.
 

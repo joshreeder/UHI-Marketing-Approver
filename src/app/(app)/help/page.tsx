@@ -14,8 +14,9 @@ const sections = [
   { id: "approver", title: "4. What approvers see" },
   { id: "changes", title: "5. Handle change requests" },
   { id: "reminders", title: "6. Reminders and nudges" },
-  { id: "status", title: "7. Statuses, due dates and the timeline" },
-  { id: "finish", title: "8. Finish and archive" },
+  { id: "status", title: "7. Statuses and due dates" },
+  { id: "timeline", title: "8. The Timeline (Gantt)" },
+  { id: "finish", title: "9. Finish and archive" },
   { id: "settings", title: "Settings" },
   { id: "faq", title: "Common questions" },
 ];
@@ -81,7 +82,8 @@ export default async function HelpPage() {
             </p>
             <ul>
               <li>
-                <b>Upload a file</b>: drag a PDF or image onto the box, or click it to choose one. PDF, JPG, PNG, GIF and WebP up to 50 MB. PDFs show every page; images zoom.
+                <b>Upload a file</b>: drag a PDF, image, Word or PowerPoint file onto the box, or click it to choose one. Up to 50 MB. PDFs show every page; images zoom.
+                Word files are converted to an approximate preview and the original stays downloadable. PowerPoint files are download-only for now, so export to PDF when approvers need to see slides in the browser.
               </li>
               <li>
                 <b>Paste copy</b>: for emails and any text that needs sign-off. Paste the copy into the big box, add an optional subject line and from name, and save.
@@ -92,14 +94,14 @@ export default async function HelpPage() {
               Add a short <b>version note</b> (“Fixed logo size, updated dates”). It is shown to approvers and in the history.
             </p>
             <p>
-              Word documents: for now export to PDF and upload that, or paste the text into the copy tab. Direct Word preview is on the list for a later phase.
+              For copy versions there is a <b>Send me a test</b> button that emails you the text exactly as an email, so you can check it in a real inbox before sending it to approvers.
             </p>
           </Section>
 
           <Section id="send" title="3. Send for approval">
             <p>
-              After the first version is saved, the panel on the right shows <b>Send for approval</b>. Enter one or more emails (commas between them; click a past
-              approver to add them), set the review window in days, add an optional personal note, and click Send.
+              After the first version is saved, the panel on the right shows <b>Send for approval</b>. Type an email and press Enter to add it; past approvers appear as
+              suggestions while you type, and you can paste a whole list. Set the review window in days, add an optional personal note, and click Send.
             </p>
             <p>
               Each approver gets an email with their own link. The link signs them in automatically and is scoped to this one item, so they cannot see anything else.
@@ -110,19 +112,23 @@ export default async function HelpPage() {
           <Section id="approver" title="4. What approvers see">
             <p>
               A clean page with the piece front and centre, the version note, who else is reviewing, and two buttons at the bottom: <b>Approve</b> and{" "}
-              <b>Request changes</b>. Request changes asks for a comment (required) so the designer knows what to do. It works well on a phone.
+              <b>Request changes</b>. They can also <b>click anywhere on the preview to pin a numbered note</b> to that exact spot (on a PDF page, an image, or a paragraph of copy).
+              Request changes asks for a summary comment, which becomes optional once they have pinned notes. It works well on a phone.
             </p>
             <p>
               You and the designer are emailed every decision. When the last approver approves, everyone on the team gets a “Fully approved” email and the version is marked Approved.
             </p>
             <p>
-              To see exactly what an approver sees, open any item and view <b>/review/item/…</b>; team members can view it but only assigned approvers get the buttons.
+              On the item page each waiting approver shows when they were sent the email and, once email tracking is connected, when they <b>opened</b> it, so you can tell
+              “hasn’t looked yet” from “looked and hasn’t decided”. To see exactly what an approver sees, open any item and view <b>/review/item/…</b>; team members can view
+              it but only assigned approvers get the buttons.
             </p>
           </Section>
 
           <Section id="changes" title="5. Handle change requests">
             <p>
-              A single Request changes flips the round to <b>Changes requested</b>. Other approvers can still weigh in. The comments appear on the item page under the version.
+              A single Request changes flips the round to <b>Changes requested</b>. Other approvers can still weigh in. Comments appear on the item page under the version,
+              and pinned notes show as numbered markers on the preview itself; click a marker to read it.
             </p>
             <p>
               Fix the piece and add a <b>New version</b>. The old round is closed as <b>Superseded</b>, all its approvers are copied to the new round and emailed “New version ready”,
@@ -141,7 +147,7 @@ export default async function HelpPage() {
             </ul>
           </Section>
 
-          <Section id="status" title="7. Statuses, due dates and the timeline">
+          <Section id="status" title="7. Statuses and due dates">
             <p>Project status is worked out automatically from its items:</p>
             <ul>
               <li><b>Not started</b>: start date is in the future and nothing has been uploaded.</li>
@@ -152,12 +158,25 @@ export default async function HelpPage() {
               <li><b>Done / On hold / Cancelled</b>: set by hand in the Status box on the project page. Choose “Active (derived)” to hand control back to the app.</li>
             </ul>
             <p>
-              A red <b>Overdue</b> badge appears when the project due date or a review round’s due date has passed. The Dashboard’s <b>Overdue</b> filter lists them all.
-              The <b>Planned schedule</b> strip on each project shows design → review → revise → … → approved, with today marked in red.
+              A red <b>Overdue</b> badge appears when the project due date or a review round’s due date has passed. The Dashboard’s <b>Overdue</b> filter lists them all,
+              and the search box finds projects and items by name.
             </p>
           </Section>
 
-          <Section id="finish" title="8. Finish and archive">
+          <Section id="timeline" title="8. The Timeline (Gantt)">
+            <p>
+              <b>Timeline</b> in the top navigation shows every scheduled project as a bar from start to due date, coloured by status, with today marked in red.
+              Under each bar: a thin strip with the <b>plan</b> (design → review 1 → revise → review 2 …) and, below that, the <b>review rounds that actually happened</b>,
+              one marker per version sent, coloured by outcome. Red on the end of a bar means overdue.
+            </p>
+            <ul>
+              <li><b>Drag a bar</b> left or right to move the whole project (start and due) by whole days.</li>
+              <li>The label shows <b>“3d behind plan”</b> or “ahead of plan” by comparing the latest real round with the planned one, and flags <b>extra rounds</b> beyond the plan.</li>
+              <li>Projects without dates are listed underneath with a link to add them. <b>Show archived</b> includes finished work.</li>
+            </ul>
+          </Section>
+
+          <Section id="finish" title="9. Finish and archive">
             <p>
               When the piece is approved, click <b>Mark complete</b> on the project page (or turn on auto-complete in Settings). Then <b>Archive project</b> to move it off the
               Dashboard; it stays under Archive, searchable, with its full history. Restore it any time.
@@ -169,7 +188,7 @@ export default async function HelpPage() {
               <li><b>Team members</b>: add designers or owners by email. Remove drops them back to approver-only access.</li>
               <li><b>Defaults</b>: review window, planned rounds and revision days for new projects.</li>
               <li><b>Reminders</b>: toggle the halfway and due-date reminders; auto-complete projects when everything is approved.</li>
-              <li><b>Integrations</b>: shows whether email sending and file storage are configured.</li>
+              <li><b>Integrations</b>: shows whether email sending, file storage and email open tracking are configured.</li>
             </ul>
           </Section>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { addDays, differenceInCalendarDays, format, isMonday, startOfDay } from "date-fns";
@@ -52,7 +52,17 @@ const ROUND_COLOR: Record<RoundStatus, string> = {
   superseded: "var(--uh-muted)",
 };
 
-export function GanttChart({ rows, from, to, today }: { rows: Row[]; from: string; to: string; today: string }) {
+export function GanttChart(props: { rows: Row[]; from: string; to: string; today: string }) {
+  // Dates are formatted in the viewer's time zone, so render only after mount to avoid hydration mismatches.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) {
+    return <div className="rounded-xl border border-line bg-white" style={{ minHeight: HEADER_H + props.rows.length * ROW_H + 40 }} aria-busy="true" />;
+  }
+  return <GanttChartInner {...props} />;
+}
+
+function GanttChartInner({ rows, from, to, today }: { rows: Row[]; from: string; to: string; today: string }) {
   const router = useRouter();
   const [, start] = useTransition();
   const fromDate = useMemo(() => startOfDay(new Date(from)), [from]);

@@ -29,22 +29,24 @@ tracker-only project. Add more items any time from the project page.
 
 On the item page click **Add v1** (later **New version**). Two tabs:
 
-- **Upload a file** — drag a PDF or image onto the box or click to choose. PDF, JPG, PNG, GIF, WebP, up to 50 MB.
+- **Upload a file** — drag a PDF, image, Word or PowerPoint file onto the box or click to choose. Up to 50 MB. Word files get an
+  approximate preview (original stays downloadable); PowerPoint is download-only, so export to PDF when slides must show in the browser.
 - **Paste copy** — for emails and any text needing sign-off. Paste the text, optionally add a subject line and from name, save.
   Blank lines start paragraphs. The next version opens pre-filled with the current text.
 
-Add a short **version note**; approvers see it. Word documents: export to PDF or paste the text for now.
+Add a short **version note**; approvers see it. Copy versions have a **Send me a test** button that emails you the text as a real email.
 
 ## 3. Send for approval
 
-After the first version is saved, use **Send for approval** on the right: emails (comma separated, or click a past approver),
-review window in days, optional note, **Send**. Each approver gets a personal link scoped to that one item. It works until a
+After the first version is saved, use **Send for approval** on the right: type emails and press Enter (past approvers are
+suggested as you type; pasting a list works), review window in days, optional note, **Send**. Each approver gets a personal link scoped to that one item. It works until a
 newer version replaces it or 30 days pass. Replies go to you.
 
 ## 4. What approvers see
 
-The piece, the version note, who else is reviewing, and two buttons: **Approve** and **Request changes** (comment required).
-Works on a phone. You and the designer get an email for every decision, and a "Fully approved" email when the last approval lands.
+The piece, the version note, who else is reviewing, and two buttons: **Approve** and **Request changes**. Approvers can also click
+anywhere on the preview to pin a numbered note to that spot. Request changes asks for a summary, optional once notes are pinned.
+Works on a phone. The item page shows when each approver was emailed and (with tracking connected) when they opened it. You and the designer get an email for every decision, and a "Fully approved" email when the last approval lands.
 
 ## 5. Handle change requests
 
@@ -57,11 +59,17 @@ Superseded, its approvers are copied to the new round and emailed "New version r
 - Automatic reminders halfway through the review window and on the due date (daily, 8 am Mountain; toggle in Settings).
 - **Nudge** next to any waiting approver sends a reminder now and logs it. Limited to once per hour per person.
 
-## 7. Statuses and the timeline
+## 7. Statuses, due dates and search
 
 Not started → In progress → In review → Changes requested → Approved are worked out automatically. Done, On hold and
 Cancelled are set by hand in the Status box on the project page ("Active (derived)" hands control back). Red **Overdue**
-badges appear when a project or round due date passes. The planned schedule strip shows design → review → revise → approved.
+badges appear when a project or round due date passes. The Dashboard search box finds projects and items by name.
+
+## 7b. Timeline (Gantt)
+
+**Timeline** shows scheduled projects as bars from start to due, coloured by status, today in red. Under each bar: the plan
+(design → review → revise) as a thin strip, and the real review rounds as markers coloured by outcome. Drag a bar to move the
+project by whole days. Labels show "behind/ahead of plan" and flag extra rounds beyond the plan.
 
 ## 8. Finish and archive
 

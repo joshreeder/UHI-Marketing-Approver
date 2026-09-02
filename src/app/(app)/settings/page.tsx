@@ -16,6 +16,7 @@ export default async function SettingsPage() {
   const [team, settings] = await Promise.all([listTeamMembers(), getSettings()]);
   const emailConfigured = !!env.RESEND_API_KEY;
   const blobConfigured = !!env.BLOB_READ_WRITE_TOKEN;
+  const webhookConfigured = !!env.RESEND_WEBHOOK_SECRET;
 
   return (
     <>
@@ -65,6 +66,8 @@ export default async function SettingsPage() {
               <dd>{emailConfigured ? <span className="text-[var(--status-approved)]">Configured</span> : <span className="text-brand-red">Not configured — emails print to the server log</span>}</dd>
               <dt className="text-slate">File storage (Blob)</dt>
               <dd>{blobConfigured ? <span className="text-[var(--status-approved)]">Configured</span> : <span className="text-brand-red">Not configured — uploads disabled</span>}</dd>
+              <dt className="text-slate">Email open tracking</dt>
+              <dd>{webhookConfigured ? <span className="text-[var(--status-approved)]">Configured</span> : <span className="text-slate">Not configured — add a Resend webhook for email.opened / email.clicked pointing at {env.APP_URL}/api/webhooks/resend and set RESEND_WEBHOOK_SECRET</span>}</dd>
               <dt className="text-slate">Sending from</dt>
               <dd className="text-ink">{env.EMAIL_FROM}</dd>
               <dt className="text-slate">App URL</dt>
