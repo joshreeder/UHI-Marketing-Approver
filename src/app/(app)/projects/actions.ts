@@ -153,3 +153,24 @@ export async function addItem(projectId: string, _prev: FormState, formData: For
   revalidatePath(`/projects/${projectId}`);
   redirect(`/items/${item.id}`);
 }
+
+/** Gantt drag: shift start and due dates by whole days. */
+export async function shiftProjectDates(projectId: string, deltaDays: number): Promise<{ ok: boolean; error?: string }> {
+  const session = await requireTeam();
+  const delta = Math.trunc(deltaDays);
+  if (!Number.isFinite(delta) || delta === 0 || Math.abs(delta) > 365) return { ok: false, error: "Invalid shift." };
+  const [p] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+  if (!p) return { ok: false, error: "Project not found." };
+  const shift = (d: string | null) => {
+    if (!d) return null;
+    const [y, m, day] = d.split("-").map(Number);
+    const dt = new Date(y, m - 1, day + delta);
+    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+  };
+  await db.update(projects).set({ startDate: shift(p.startDate), dueDate: shift(p.dueDate) }).where(eq(projects.id, projectId));
+  await logActivity({ projectId, actorId: session.user.id, type: "project_updated", meta: { shiftedDays: delta } });
+  revalidatePath("/timeline");
+  revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/");
+  return { ok: true };
+}

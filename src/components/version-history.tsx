@@ -76,6 +76,7 @@ export function VersionHistory({
                           <span>
                             <span className="mr-1.5 inline-flex size-4 items-center justify-center rounded-full bg-navy text-[10px] text-white">{i + 1}</span>
                             {c.author ? displayName(c.author) : "Approver"} · {fmtDateTime(c.createdAt)}
+                            {c.x != null ? <span className="ml-2 text-navy">Pinned{c.pageNo ? ` · page ${c.pageNo}` : ""}</span> : null}
                             {c.addressedInVersionId ? <span className="ml-2 text-[var(--status-approved)]">Addressed</span> : null}
                           </span>
                           {isTeam && newest && newest.id !== v.id ? (

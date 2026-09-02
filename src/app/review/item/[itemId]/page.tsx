@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
-import { FilePreview } from "@/components/file-preview";
+import { AnnotatedPreview, commentsToPins } from "@/components/annotated-preview";
 import { ApproversList } from "@/components/approvers-list";
 import { ReviewActions } from "@/components/review-actions";
 import { AddCommentForm } from "@/components/add-comment-form";
@@ -71,7 +71,7 @@ export default async function ReviewItemPage({ params }: { params: Promise<{ ite
               ) : null}
             </section>
 
-            <FilePreview version={current} />
+            <AnnotatedPreview version={current} pins={commentsToPins(current.comments)} canPin={!!mine && !!round && (round.status === "pending" || round.status === "changes_requested")} approvalId={mine?.id ?? null} />
 
             {round ? (
               <section className="rounded-xl border border-line bg-white p-4 sm:p-5">

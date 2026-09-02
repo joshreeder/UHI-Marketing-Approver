@@ -272,3 +272,32 @@ export async function teamRecipientsForVersion(projectId: string, uploaderId: st
   for (const o of owners) ids.add(o.id);
   return db.select().from(users).where(and(inArray(users.id, [...ids])));
 }
+
+// Timeline -----------------------------------------------------------------
+
+export async function listTimelineProjects(includeArchived = false) {
+  const rows = await db.query.projects.findMany({
+    where: includeArchived ? undefined : isNull(projects.archivedAt),
+    with: {
+      designer: true,
+      items: { with: { versions: { with: { round: true }, orderBy: versions.number } } },
+    },
+    orderBy: [sql`${projects.startDate} asc nulls last`, projects.name],
+  });
+  return rows.map((p) => ({
+    id: p.id,
+    name: p.name,
+    status: p.status,
+    designer: p.designer ? (p.designer.name?.trim() || p.designer.email) : null,
+    startDate: p.startDate,
+    dueDate: p.dueDate,
+    plannedRounds: p.plannedRounds,
+    reviewWindowDays: p.reviewWindowDays,
+    revisionDays: p.revisionDays,
+    rounds: p.items.flatMap((it) =>
+      it.versions
+        .filter((v) => v.round)
+        .map((v) => ({ versionNumber: v.number, sentAt: v.round!.sentAt, dueAt: v.round!.dueAt, completedAt: v.round!.completedAt, status: v.round!.status })),
+    ),
+  }));
+}

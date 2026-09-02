@@ -37,7 +37,14 @@ export async function submitDecision(_prev: DecisionState, formData: FormData): 
   return { done: d.decision };
 }
 
-const commentSchema = z.object({ versionId: z.string().uuid(), approvalId: z.string().uuid().optional(), body: z.string().trim().min(1, "Write a comment first.").max(5000) });
+const commentSchema = z.object({
+  versionId: z.string().uuid(),
+  approvalId: z.string().uuid().optional(),
+  body: z.string().trim().min(1, "Write a comment first.").max(5000),
+  pageNo: z.preprocess((v) => (v === "" || v == null ? null : Number(v)), z.number().int().min(1).nullable()).optional(),
+  x: z.preprocess((v) => (v === "" || v == null ? null : Number(v)), z.number().min(0).max(1).nullable()).optional(),
+  y: z.preprocess((v) => (v === "" || v == null ? null : Number(v)), z.number().min(0).max(1).nullable()).optional(),
+});
 
 export type CommentState = { error?: string; ok?: boolean };
 
@@ -45,15 +52,30 @@ export type CommentState = { error?: string; ok?: boolean };
 export async function addComment(_prev: CommentState, formData: FormData): Promise<CommentState> {
   const session = await getSession();
   if (!session) return { error: "Your link has expired." };
-  const parsed = commentSchema.safeParse({ versionId: formData.get("versionId"), approvalId: formData.get("approvalId") || undefined, body: formData.get("body") });
+  const parsed = commentSchema.safeParse({
+    versionId: formData.get("versionId"),
+    approvalId: formData.get("approvalId") || undefined,
+    body: formData.get("body"),
+    pageNo: formData.get("pageNo"),
+    x: formData.get("x"),
+    y: formData.get("y"),
+  });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
   const d = parsed.data;
 
   const detail = await db.query.versions.findFirst({ where: (v, { eq: e }) => e(v.id, d.versionId), with: { item: true } });
   if (!detail || !canAccessItem(session, detail.itemId)) return { error: "Not allowed." };
 
-  await db.insert(comments).values({ versionId: d.versionId, approvalId: d.approvalId ?? null, authorId: session.user.id, body: d.body });
-  await logActivity({ projectId: detail.item.projectId, itemId: detail.itemId, versionId: d.versionId, actorId: session.user.id, type: "comment_added", meta: { versionNumber: detail.number } });
+  await db.insert(comments).values({
+    versionId: d.versionId,
+    approvalId: d.approvalId ?? null,
+    authorId: session.user.id,
+    body: d.body,
+    pageNo: d.pageNo ?? null,
+    x: d.x ?? null,
+    y: d.y ?? null,
+  });
+  await logActivity({ projectId: detail.item.projectId, itemId: detail.itemId, versionId: d.versionId, actorId: session.user.id, type: "comment_added", meta: { versionNumber: detail.number, pinned: d.x != null } });
   revalidatePath("/review/item/[itemId]", "page");
   revalidatePath(`/items/${detail.itemId}`);
   return { ok: true };

@@ -24,9 +24,9 @@ export function ReviewActions({ approvalId, versionNumber }: { approvalId: strin
         {mode === "changes" ? (
           <div className="mb-3 space-y-2">
             <label htmlFor="comment" className="text-sm font-medium text-ink">
-              What needs to change on v{versionNumber}?
+              What needs to change on v{versionNumber}? (Optional if you pinned notes on the preview.)
             </label>
-            <Textarea id="comment" name="comment" rows={3} required autoFocus placeholder="Page 2: the phone number is out of date. Headline should say 'Fall' not 'Autumn'." className="text-base" />
+            <Textarea id="comment" name="comment" rows={3} autoFocus placeholder="Page 2: the phone number is out of date. Headline should say 'Fall' not 'Autumn'." className="text-base" />
           </div>
         ) : null}
         <FormMessage message={state.error} className="mb-2" />

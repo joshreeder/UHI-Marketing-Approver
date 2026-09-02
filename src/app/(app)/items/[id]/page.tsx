@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
 import { ActivityFeed } from "@/components/activity-feed";
 import { ApproversList } from "@/components/approvers-list";
-import { FilePreview } from "@/components/file-preview";
+import { AnnotatedPreview, commentsToPins } from "@/components/annotated-preview";
 import { SendForApprovalForm } from "@/components/send-for-approval-form";
 import { RoundPill } from "@/components/status-pill";
 import { UploadVersionDialog } from "@/components/upload-version-dialog";
@@ -74,7 +74,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
       ) : (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-6">
-            <FilePreview version={current} />
+            <AnnotatedPreview version={current} pins={commentsToPins(current.comments)} canPin={false} />
           </div>
 
           <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">

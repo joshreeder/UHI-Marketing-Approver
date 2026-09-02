@@ -234,7 +234,12 @@ export async function recordDecision(input: {
   if (a.userId !== input.actor.id) return { ok: false, error: "This approval belongs to someone else." };
   if (a.round.status === "superseded") return { ok: false, error: "A newer version replaced this one. Check your email for the new link." };
   if (input.decision === "changes_requested" && !input.comment?.trim()) {
-    return { ok: false, error: "Tell the designer what needs to change." };
+    const pinned = await db
+      .select({ id: comments.id })
+      .from(comments)
+      .where(and(eq(comments.versionId, a.round.versionId), eq(comments.authorId, input.actor.id)))
+      .limit(1);
+    if (pinned.length === 0) return { ok: false, error: "Tell the designer what needs to change, or pin a note on the preview first." };
   }
 
   const now = new Date();

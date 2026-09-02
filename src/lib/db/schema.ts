@@ -144,6 +144,8 @@ export const versions = pgTable(
     mime: text("mime"),
     size: integer("size"),
     previewUrl: text("preview_url"),
+    /** Generated HTML preview for formats the browser cannot show natively (DOCX via mammoth). */
+    previewHtml: text("preview_html"),
     // email versions
     emailSubject: text("email_subject"),
     emailFromName: text("email_from_name"),
@@ -179,6 +181,9 @@ export const approvals = pgTable(
     status: approvalStatusEnum("status").notNull().default("waiting"),
     decidedAt: timestamp("decided_at", { withTimezone: true }),
     lastEmailedAt: timestamp("last_emailed_at", { withTimezone: true }),
+    /** From Resend webhooks: when the approver first opened / clicked an email for this approval. */
+    emailOpenedAt: timestamp("email_opened_at", { withTimezone: true }),
+    emailClickedAt: timestamp("email_clicked_at", { withTimezone: true }),
     reminderCount: integer("reminder_count").notNull().default(0),
     /** HMAC hash of the scoped approver token embedded in emails. */
     tokenHash: text("token_hash").notNull().unique(),

@@ -8,6 +8,7 @@ export function NavLinks({ isOwner }: { isOwner: boolean }) {
   const pathname = usePathname();
   const links = [
     { href: "/", label: "Dashboard", active: pathname === "/" || pathname.startsWith("/projects") || pathname.startsWith("/items") },
+    { href: "/timeline", label: "Timeline", active: pathname.startsWith("/timeline") },
     { href: "/?filter=archived", label: "Archive", active: false },
     ...(isOwner ? [{ href: "/settings", label: "Settings", active: pathname.startsWith("/settings") }] : []),
     { href: "/help", label: "Help", active: pathname.startsWith("/help") },
