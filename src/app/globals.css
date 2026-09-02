@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import "./shadcn-tailwind.css"; /* vendored from shadcn@4.20.0 (dist/tailwind.css) */
 @import "./brand-tokens.css";
 
 /* Approval Hub — "Clean Ledger" theme mapped onto United Heritage brand tokens. Light only. */
