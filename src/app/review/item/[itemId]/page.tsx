@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
-import { AnnotatedPreview, commentsToPins } from "@/components/annotated-preview";
+import { AnnotatedPreview } from "@/components/annotated-preview";
+import { commentsToPins } from "@/lib/pins";
 import { ApproversList } from "@/components/approvers-list";
 import { ReviewActions } from "@/components/review-actions";
 import { AddCommentForm } from "@/components/add-comment-form";

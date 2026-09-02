@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { addComment } from "@/app/review/actions";
 import { cn } from "@/lib/utils";
 
-export type Pin = { id: string; number: number; x: number; y: number; pageNo: number | null; body: string; author: string; addressed: boolean };
+import type { Pin } from "@/lib/pins";
 
 /**
  * Absolutely-positioned layer over a preview page. Shows numbered pins for existing comments and,

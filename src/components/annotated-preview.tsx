@@ -1,6 +1,9 @@
+"use client";
+
 import { PdfViewer } from "./pdf-viewer";
 import { CopyPreview } from "./copy-preview";
-import { PinLayer, type Pin } from "./pin-layer";
+import { PinLayer } from "./pin-layer";
+import type { Pin } from "@/lib/pins";
 import { isCopyVersion } from "@/lib/copy";
 import type { Version } from "@/lib/db/schema";
 
@@ -97,25 +100,4 @@ export function AnnotatedPreview({
 
 function PinHint() {
   return <p className="mt-2 text-center text-xs text-slate">Click anywhere on the preview to pin a note to that spot.</p>;
-}
-
-/** Converts DB comments to pins (only those with a position). */
-export function commentsToPins(
-  comments: { id: string; body: string; x: number | null; y: number | null; pageNo: number | null; addressedInVersionId: string | null; author: { name: string | null; email: string } | null }[],
-): Pin[] {
-  let n = 0;
-  return comments.map((c) => {
-    n += 1;
-    return {
-      id: c.id,
-      number: n,
-      x: c.x ?? 0,
-      y: c.y ?? 0,
-      pageNo: c.pageNo,
-      body: c.body,
-      author: c.author ? c.author.name?.trim() || c.author.email : "Approver",
-      addressed: !!c.addressedInVersionId,
-      positioned: c.x != null && c.y != null,
-    } as Pin & { positioned: boolean };
-  }).filter((p) => (p as Pin & { positioned: boolean }).positioned);
 }
