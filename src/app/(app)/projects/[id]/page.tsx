@@ -49,7 +49,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         description={project.description}
         actions={
           <>
-            <Button variant="outline" render={<Link href={`/projects/${project.id}/edit`} />}>
+            <Button variant="outline" nativeButton={false} render={<Link href={`/projects/${project.id}/edit`} />}>
               Edit
             </Button>
             {project.status !== "done" ? (

@@ -32,7 +32,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         title={filter === "archived" ? "Archive" : "Projects"}
         description={filter === "archived" ? "Completed and archived projects. Still searchable, out of the way." : "Every marketing piece: one home, one current version, a clear yes or no."}
         actions={
-          <Button render={<Link href="/projects/new" />}>New project</Button>
+          <Button nativeButton={false} render={<Link href="/projects/new" />}>New project</Button>
         }
       />
 
@@ -59,7 +59,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <EmptyState
           title={filter === "all" ? "No projects yet" : "Nothing here"}
           description={filter === "all" ? "Create a project to start tracking a marketing piece." : "Try a different filter."}
-          action={filter === "all" ? <Button render={<Link href="/projects/new" />}>New project</Button> : undefined}
+          action={filter === "all" ? <Button nativeButton={false} render={<Link href="/projects/new" />}>New project</Button> : undefined}
         />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-line bg-white">

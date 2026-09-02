@@ -5,18 +5,15 @@
 import "dotenv/config";
 import { createHmac, randomBytes } from "node:crypto";
 import { addDays, subDays } from "date-fns";
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
 import { eq } from "drizzle-orm";
 import { put } from "@vercel/blob";
-import * as schema from "../src/lib/db/schema";
+import { scriptDb, schema } from "./db";
 
 const { users, projects, items, versions, reviewRounds, approvals, comments, activity, settings } = schema;
 
-const url = process.env.DATABASE_URL;
 const secret = process.env.SESSION_SECRET;
-if (!url || !secret) throw new Error("DATABASE_URL and SESSION_SECRET must be set");
-const db = drizzle(neon(url), { schema });
+if (!secret) throw new Error("SESSION_SECRET must be set");
+const { db } = scriptDb();
 
 const hash = (t: string) => createHmac("sha256", secret).update(t).digest("hex");
 const token = () => randomBytes(32).toString("base64url");
@@ -180,6 +177,7 @@ Seeded.
   Demo approver link (Casey Compliance on v2): ${appUrl}/review/${demoToken}
   ${blobToken ? "Sample PDFs uploaded to Blob." : "BLOB_READ_WRITE_TOKEN not set — versions have no files (previews show a placeholder)."}
 `);
+  process.exit(0);
 }
 
 main().catch((e) => {

@@ -105,7 +105,7 @@ export function ProjectForm({ action, initial, designers, mode, cancelHref }: Pr
           <Button type="submit" disabled={pending}>
             {pending ? "Saving…" : mode === "create" ? "Create project" : "Save changes"}
           </Button>
-          <Button variant="ghost" render={<Link href={cancelHref} />}>
+          <Button variant="ghost" nativeButton={false} render={<Link href={cancelHref} />}>
             Cancel
           </Button>
         </div>

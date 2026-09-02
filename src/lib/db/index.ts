@@ -1,10 +1,24 @@
+import { drizzle as drizzleNeon } from "drizzle-orm/neon-http";
+import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import { Pool } from "pg";
 import * as schema from "./schema";
 import { env } from "@/lib/env";
 
-const sql = neon(env.DATABASE_URL);
+/**
+ * Neon's HTTP driver in production (serverless-friendly, no connection pooling to manage).
+ * Any other Postgres (local dev, CI) goes through node-postgres.
+ */
+function isNeon(url: string) {
+  return /neon\.tech|\.neon\.build/.test(url);
+}
 
-export const db = drizzle(sql, { schema });
-export type Db = typeof db;
+function createDb() {
+  const url = env.DATABASE_URL;
+  if (isNeon(url)) return drizzleNeon(neon(url), { schema });
+  return drizzlePg(new Pool({ connectionString: url, max: 5 }), { schema });
+}
+
+export const db = createDb();
+export type Db = ReturnType<typeof createDb>;
 export { schema };

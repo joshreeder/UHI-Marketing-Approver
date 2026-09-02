@@ -76,7 +76,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                   </p>
                 </div>
                 {current.fileName ? (
-                  <Button variant="ghost" size="xs" render={<a href={`/api/files/${current.id}?download=1`} />}>
+                  <Button variant="ghost" size="xs" nativeButton={false} render={<a href={`/api/files/${current.id}?download=1`} />}>
                     Download
                   </Button>
                 ) : null}

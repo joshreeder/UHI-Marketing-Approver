@@ -225,7 +225,7 @@ export async function getItemDetail(id: string): Promise<ItemDetail | null> {
         orderBy: desc(versions.number),
         with: {
           uploader: true,
-          round: { with: { approvals: { with: { user: true, comments: true }, orderBy: approvals.createdAt } } },
+          round: { with: { approvals: { with: { user: true, comments: true }, orderBy: [approvals.createdAt, approvals.id] } } },
           comments: { with: { author: true }, orderBy: comments.createdAt },
         },
       },
