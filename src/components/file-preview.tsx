@@ -1,8 +1,11 @@
 import { PdfViewer } from "./pdf-viewer";
+import { CopyPreview } from "./copy-preview";
+import { isCopyVersion } from "@/lib/copy";
 import type { Version } from "@/lib/db/schema";
 
 /** Big preview for a version: PDF via PDF.js, images natively. Served through /api/files with auth. */
 export function FilePreview({ version, className }: { version: Version; className?: string }) {
+  if (isCopyVersion(version)) return <CopyPreview version={version} className={className} />;
   if (!version.fileUrl) {
     return (
       <div className={className}>

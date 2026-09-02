@@ -9,20 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { FormMessage } from "@/components/form-message";
 import { ScheduleBar } from "@/components/schedule-bar";
 import type { FormState } from "@/app/(app)/projects/actions";
-import { toDateInput } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-export type ProjectFormValues = {
-  name: string;
-  description: string;
-  designerId: string;
-  startDate: string;
-  dueDate: string;
-  estHours: string;
-  plannedRounds: number;
-  reviewWindowDays: number;
-  revisionDays: number;
-};
+import type { ProjectFormValues } from "@/lib/project-form-values";
+export type { ProjectFormValues };
 
 type Props = {
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
@@ -140,28 +130,4 @@ function Field({ label, hint, error, children }: { label: string; hint?: string;
       {error ? <p className="text-xs text-brand-red">{error}</p> : hint ? <p className="text-xs text-slate">{hint}</p> : null}
     </div>
   );
-}
-
-export function projectToFormValues(p: {
-  name: string;
-  description: string | null;
-  designerId: string | null;
-  startDate: string | null;
-  dueDate: string | null;
-  estHours: number | null;
-  plannedRounds: number;
-  reviewWindowDays: number;
-  revisionDays: number;
-}): ProjectFormValues {
-  return {
-    name: p.name,
-    description: p.description ?? "",
-    designerId: p.designerId ?? "",
-    startDate: toDateInput(p.startDate),
-    dueDate: toDateInput(p.dueDate),
-    estHours: p.estHours != null ? String(p.estHours) : "",
-    plannedRounds: p.plannedRounds,
-    reviewWindowDays: p.reviewWindowDays,
-    revisionDays: p.revisionDays,
-  };
 }

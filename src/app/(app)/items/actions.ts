@@ -8,6 +8,7 @@ import { comments, items, versions } from "@/lib/db/schema";
 import { requireTeam } from "@/lib/auth/session";
 import { logActivity } from "@/lib/activity";
 import { isAllowedMime, MAX_UPLOAD_BYTES } from "@/lib/blob";
+import { textToHtml } from "@/lib/copy";
 import { refreshProjectStatus } from "@/lib/queries";
 import { sendReminder, startRound, supersedeWithNewVersion } from "@/lib/rounds";
 
@@ -17,6 +18,68 @@ async function loadItem(itemId: string) {
   const [row] = await db.query.items.findMany({ where: eq(items.id, itemId), with: { project: true }, limit: 1 });
   if (!row) throw new Error("Item not found");
   return row;
+}
+
+type VersionValues = {
+  note: string;
+  fileUrl?: string | null;
+  fileName?: string | null;
+  mime?: string | null;
+  size?: number | null;
+  emailSubject?: string | null;
+  emailFromName?: string | null;
+  emailHtml?: string | null;
+};
+
+/**
+ * Inserts the next version for an item, logs it, and — when the previous version had a review
+ * round — supersedes that round and re-emails its approvers. Shared by file and copy uploads.
+ */
+async function insertVersion(session: Awaited<ReturnType<typeof requireTeam>>, itemId: string, values: VersionValues) {
+  const item = await loadItem(itemId);
+  const [prev] = await db.select().from(versions).where(eq(versions.itemId, item.id)).orderBy(desc(versions.number)).limit(1);
+  const number = (prev?.number ?? 0) + 1;
+
+  const [version] = await db
+    .insert(versions)
+    .values({
+      itemId: item.id,
+      number,
+      note: values.note || null,
+      uploadedBy: session.user.id,
+      fileUrl: values.fileUrl ?? null,
+      fileName: values.fileName ?? null,
+      mime: values.mime ?? null,
+      size: values.size ?? null,
+      emailSubject: values.emailSubject ?? null,
+      emailFromName: values.emailFromName ?? null,
+      emailHtml: values.emailHtml ?? null,
+    })
+    .returning();
+  await logActivity({
+    projectId: item.projectId,
+    itemId: item.id,
+    versionId: version.id,
+    actorId: session.user.id,
+    type: "version_uploaded",
+    meta: { versionNumber: number, note: values.note || null, fileName: values.fileName ?? null, kind: values.emailHtml ? "copy" : "file" },
+  });
+
+  let message = `v${number} ${values.emailHtml ? "saved" : "uploaded"}.`;
+  if (prev) {
+    const result = await supersedeWithNewVersion({
+      previousVersionId: prev.id,
+      newVersionId: version.id,
+      actor: session.user,
+      reviewWindowDays: item.reviewWindowDays ?? item.project.reviewWindowDays,
+    });
+    if (result) message = `v${number} ${values.emailHtml ? "saved" : "uploaded"} and sent to ${result.sent} approver${result.sent === 1 ? "" : "s"}.`;
+  }
+  await refreshProjectStatus(item.projectId);
+  revalidatePath(`/items/${item.id}`);
+  revalidatePath(`/projects/${item.projectId}`);
+  revalidatePath("/");
+  return { ok: true as const, message, versionId: version.id };
 }
 
 const versionSchema = z.object({
@@ -35,48 +98,29 @@ export async function createVersion(input: z.input<typeof versionSchema>): Promi
   if (!parsed.success) return { ok: false, error: "Upload details were incomplete. Try again." };
   const d = parsed.data;
   if (!isAllowedMime(d.mime)) return { ok: false, error: "Only PDF, JPG, PNG, GIF and WebP files are supported." };
+  return insertVersion(session, d.itemId, d);
+}
 
-  const item = await loadItem(d.itemId);
-  const [prev] = await db.select().from(versions).where(eq(versions.itemId, item.id)).orderBy(desc(versions.number)).limit(1);
-  const number = (prev?.number ?? 0) + 1;
+const copySchema = z.object({
+  itemId: z.string().uuid(),
+  note: z.string().trim().max(2000).optional().default(""),
+  subject: z.string().trim().max(300).optional().default(""),
+  fromName: z.string().trim().max(120).optional().default(""),
+  body: z.string().trim().min(1, "Paste the copy first.").max(100_000),
+});
 
-  const [version] = await db
-    .insert(versions)
-    .values({
-      itemId: item.id,
-      number,
-      note: d.note || null,
-      uploadedBy: session.user.id,
-      fileUrl: d.fileUrl,
-      fileName: d.fileName,
-      mime: d.mime,
-      size: d.size,
-    })
-    .returning();
-  await logActivity({
-    projectId: item.projectId,
-    itemId: item.id,
-    versionId: version.id,
-    actorId: session.user.id,
-    type: "version_uploaded",
-    meta: { versionNumber: number, note: d.note || null, fileName: d.fileName },
+/** "Paste copy" mode: email or any text that needs sign-off. Stored as simple HTML. */
+export async function createCopyVersion(input: z.input<typeof copySchema>): Promise<ActionResult & { versionId?: string }> {
+  const session = await requireTeam();
+  const parsed = copySchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Check the copy and try again." };
+  const d = parsed.data;
+  return insertVersion(session, d.itemId, {
+    note: d.note,
+    emailSubject: d.subject || null,
+    emailFromName: d.fromName || null,
+    emailHtml: textToHtml(d.body),
   });
-
-  let message = `v${number} uploaded.`;
-  if (prev) {
-    const result = await supersedeWithNewVersion({
-      previousVersionId: prev.id,
-      newVersionId: version.id,
-      actor: session.user,
-      reviewWindowDays: item.reviewWindowDays ?? item.project.reviewWindowDays,
-    });
-    if (result) message = `v${number} uploaded and sent to ${result.sent} approver${result.sent === 1 ? "" : "s"}.`;
-  }
-  await refreshProjectStatus(item.projectId);
-  revalidatePath(`/items/${item.id}`);
-  revalidatePath(`/projects/${item.projectId}`);
-  revalidatePath("/");
-  return { ok: true, message, versionId: version.id };
 }
 
 const sendSchema = z.object({

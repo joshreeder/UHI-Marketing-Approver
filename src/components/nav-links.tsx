@@ -10,6 +10,7 @@ export function NavLinks({ isOwner }: { isOwner: boolean }) {
     { href: "/", label: "Dashboard", active: pathname === "/" || pathname.startsWith("/projects") || pathname.startsWith("/items") },
     { href: "/?filter=archived", label: "Archive", active: false },
     ...(isOwner ? [{ href: "/settings", label: "Settings", active: pathname.startsWith("/settings") }] : []),
+    { href: "/help", label: "Help", active: pathname.startsWith("/help") },
   ];
   return (
     <nav className="flex items-center gap-1">

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
-import { ProjectForm, projectToFormValues } from "@/components/project-form";
+import { ProjectForm } from "@/components/project-form";
+import { projectToFormValues } from "@/lib/project-form-values";
 import { requireTeam } from "@/lib/auth/session";
 import { getProjectDetail, listTeamMembers } from "@/lib/queries";
 import { displayName } from "@/lib/format";

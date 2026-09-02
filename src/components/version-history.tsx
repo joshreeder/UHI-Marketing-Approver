@@ -3,6 +3,7 @@ import { ApproversList } from "@/components/approvers-list";
 import { MarkAddressedButton } from "@/components/mark-addressed-button";
 import { displayName, fmtBytes, fmtDate, fmtDateTime } from "@/lib/format";
 import type { VersionDetail } from "@/lib/queries";
+import { htmlToText, isCopyVersion, wordCount } from "@/lib/copy";
 
 export function VersionHistory({
   versions,
@@ -41,6 +42,7 @@ export function VersionHistory({
             <div className="hairline-t border-line space-y-4 px-4 py-4">
               <div className="text-xs text-slate">
                 Uploaded {fmtDateTime(v.createdAt)} by {displayName(v.uploader)}
+                {isCopyVersion(v) ? ` · Copy, ${wordCount(htmlToText(v.emailHtml ?? ""))} words${v.emailSubject ? ` · “${v.emailSubject}”` : ""}` : null}
                 {v.fileName ? (
                   <>
                     {" · "}

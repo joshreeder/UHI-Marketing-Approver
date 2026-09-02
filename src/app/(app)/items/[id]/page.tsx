@@ -12,6 +12,7 @@ import { VersionHistory } from "@/components/version-history";
 import { requireTeam } from "@/lib/auth/session";
 import { getItemDetail, listPastApproverEmails } from "@/lib/queries";
 import { displayName, fmtDateTime, fmtRelative } from "@/lib/format";
+import { htmlToText, isCopyVersion } from "@/lib/copy";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -48,14 +49,24 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
           </span>
         }
         actions={
-          <UploadVersionDialog itemId={item.id} nextNumber={(current?.number ?? 0) + 1} willResend={!!round && round.status !== "superseded"} />
+          <UploadVersionDialog
+            itemId={item.id}
+            nextNumber={(current?.number ?? 0) + 1}
+            willResend={!!round && round.status !== "superseded"}
+            defaultMode={current && isCopyVersion(current) ? "copy" : "file"}
+            initialCopy={
+              current && isCopyVersion(current)
+                ? { subject: current.emailSubject ?? "", fromName: current.emailFromName ?? "", body: htmlToText(current.emailHtml ?? "") }
+                : undefined
+            }
+          />
         }
       />
 
       {!current ? (
         <div className="rounded-xl border border-dashed border-line bg-white px-6 py-16 text-center">
           <p className="text-sm font-medium text-ink">No versions yet</p>
-          <p className="mt-1 text-sm text-slate">Upload v1 to preview it here and send it for approval.</p>
+          <p className="mt-1 text-sm text-slate">Upload a PDF or image, or paste email copy, to preview it here and send it for approval.</p>
           <div className="mt-4">
             <UploadVersionDialog itemId={item.id} nextNumber={1} willResend={false} />
           </div>
