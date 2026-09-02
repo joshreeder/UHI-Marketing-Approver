@@ -1,11 +1,12 @@
 # Approval Hub
 
 Internal proof-and-approval tracker for United Heritage Insurance marketing. Designers upload
-versions of a piece (PDF or image), send them to approvers by email, and track approvals and
+versions of a piece (PDF or image, or pasted email copy), send them to approvers by email, and track approvals and
 change requests per version. Approvers never create accounts — the link in their email signs
 them in.
 
 The full plan is in [docs/plan.md](docs/plan.md); the build brief is [docs/kickoff.md](docs/kickoff.md).
+How to use the app: [docs/USER-GUIDE.md](docs/USER-GUIDE.md) (also the **Help** page inside the app). Deploy notes: [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## Stack
 
