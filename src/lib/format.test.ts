@@ -37,7 +37,8 @@ describe("company time zone formatting", () => {
     const now = new Date("2026-09-03T03:00:00Z"); // still Sep 2 evening in Boise
     expect(fmtRelative(late, now)).toBe("today, 8:30 PM");
     expect(fmtRelative(new Date("2026-09-02T03:00:00Z"), now)).toBe("yesterday");
-    expect(fmtRelative(new Date("2026-09-04T15:00:00Z"), now)).toBe("tomorrow");
+    expect(fmtRelative(new Date("2026-09-03T15:00:00Z"), now)).toBe("tomorrow");
+    expect(fmtRelative(new Date("2026-09-04T15:00:00Z"), now)).toBe("in 2 days");
   });
 
   it("explains the cron hour in local time", () => {
