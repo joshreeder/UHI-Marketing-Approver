@@ -40,7 +40,7 @@ First sign-in: if no owner exists yet, the first person to request a sign-in lin
 
 ## Scripts
 
-`pnpm dev` · `pnpm build` · `pnpm test` (schedule math, Word inspection/export, copy helpers) · `pnpm typecheck` · `pnpm lint` ·
+`pnpm dev` · `pnpm build` (migrates, then builds; `pnpm build:app` skips the migration) · `pnpm test` (schedule math, Word inspection/export, copy helpers) · `pnpm typecheck` · `pnpm lint` ·
 `pnpm db:generate` (new migration from schema changes) · `pnpm db:migrate` · `pnpm db:seed` · `pnpm db:studio`
 
 ## How it fits together

@@ -37,9 +37,10 @@ Every push to `main` deploys production; PRs get preview deployments.
 Schema changes: edit `src/lib/db/schema.ts`, `pnpm db:generate`, commit the new file in `drizzle/`, then
 `pnpm dlx vercel@latest env pull .env.local && set -a && source .env.local && set +a && pnpm db:migrate`.
 
-**Pending after the Word/copy release:** `drizzle/0002_word_copy.sql` adds `versions.docx_review` (jsonb). Run `pnpm db:migrate` against
-production once that deploy is out; until then Word uploads fail to save. After it, an owner can upload the Word letterhead under
-Settings → Word letterhead (stored in the same private Blob store under `templates/`).
+Since the Word/copy release, `pnpm build` runs `scripts/migrate.ts` before `next build`, so every Vercel deploy applies pending
+migrations (drizzle's migrator is idempotent; `0002_word_copy` adds `versions.docx_review`). Without `DATABASE_URL` the step is skipped
+with a warning, and `pnpm build:app` builds without touching the database. After the deploy, an owner can upload the Word letterhead
+under Settings → Word letterhead (stored in the same private Blob store under `templates/`).
 
 ## Local development without Neon
 
