@@ -16,12 +16,9 @@ export function CopyPreview({ version, letter = DEFAULT_LETTER, className }: { v
   if (version.copyLayout === "letter") {
     return (
       <div className={className}>
-        <article
-          className="mx-auto flex w-full max-w-[816px] flex-col bg-white shadow-md ring-1 ring-line"
-          style={{ aspectRatio: "8.5 / 11", minHeight: 0 }}
-        >
+        <article className="mx-auto flex w-full max-w-[816px] flex-col bg-white shadow-md ring-1 ring-line" style={{ aspectRatio: "8.5 / 11" }}>
           <header className="flex items-start justify-between gap-6 px-[8%] pt-[6%]">
-            <Image src="/brand/united-heritage-logo.png" alt="" width={144} height={120} className="h-auto w-[18%] max-w-[144px]" />
+            <Image src="/brand/united-heritage-logo.png" alt="" width={144} height={120} className="h-auto w-[18%] min-w-[72px] max-w-[144px]" priority />
             <div className="text-right text-[0.8em] leading-snug text-slate">
               <div className="font-medium text-navy">{letter.companyName}</div>
               {letter.addressLine ? <div>{letter.addressLine}</div> : null}
@@ -29,7 +26,7 @@ export function CopyPreview({ version, letter = DEFAULT_LETTER, className }: { v
             </div>
           </header>
           <div className="mx-[8%] mt-[3%] border-t-2 border-navy" />
-          <div className="flex-1 overflow-auto px-[8%] py-[4%]">
+          <div className="flex-1 px-[8%] py-[4%]">
             <p className="mb-6 text-sm text-slate">{fmtDate(version.createdAt)}</p>
             {version.emailSubject ? <h1 className="mb-4 text-lg font-medium text-ink">{version.emailSubject}</h1> : null}
             <div className={cn("copy-body", copyBodyClass)} dangerouslySetInnerHTML={{ __html: version.emailHtml ?? "" }} />
