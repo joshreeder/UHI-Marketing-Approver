@@ -27,6 +27,7 @@ type VersionValues = {
   note: string;
   previewHtml?: string | null;
   docxReview?: DocxReview | null;
+  previewUrl?: string | null;
   fileUrl?: string | null;
   fileName?: string | null;
   mime?: string | null;
@@ -58,6 +59,7 @@ async function insertVersion(session: Awaited<ReturnType<typeof requireTeam>>, i
       size: values.size ?? null,
       previewHtml: values.previewHtml ?? null,
       docxReview: values.docxReview ?? null,
+      previewUrl: values.previewUrl ?? null,
       emailSubject: values.emailSubject ?? null,
       emailFromName: values.emailFromName ?? null,
       emailHtml: values.emailHtml ?? null,
@@ -102,6 +104,7 @@ const versionSchema = z.object({
   fileName: z.string().min(1).max(300),
   mime: z.string().min(1),
   size: z.number().int().min(1).max(MAX_UPLOAD_BYTES),
+  previewUrl: z.string().url().nullable().optional(),
 });
 
 /** Called by the upload dialog after the browser has put the file in Blob storage. */

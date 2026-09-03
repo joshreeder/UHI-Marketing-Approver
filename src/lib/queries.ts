@@ -46,10 +46,17 @@ export async function listPastApproverEmails(): Promise<string[]> {
 
 // Dashboard ----------------------------------------------------------------
 
+export type DashboardThumb = {
+  itemId: string;
+  title: string;
+  version: { id: string; mime: string | null; previewUrl: string | null; emailHtml: string | null; emailSubject: string | null; fileName: string | null } | null;
+};
+
 export type DashboardRow = {
   project: Project;
   designer: User | null;
   status: ProjectStatus;
+  thumbs: DashboardThumb[];
   /** Approvals on current (non-superseded) rounds across all items. */
   approved: number;
   total: number;
@@ -120,10 +127,19 @@ export async function listDashboard(filter: DashboardFilter, currentUserId: stri
     const overdueDays = due && isOpen ? Math.max(0, Math.floor((now.getTime() - due.getTime()) / 86_400_000)) : 0;
     const { items: _items, designer, ...project } = p;
     void _items;
+    const thumbs: DashboardThumb[] = p.items.map((it) => {
+      const v = it.versions[0];
+      return {
+        itemId: it.id,
+        title: it.title,
+        version: v ? { id: v.id, mime: v.mime, previewUrl: v.previewUrl, emailHtml: v.emailHtml, emailSubject: v.emailSubject, fileName: v.fileName } : null,
+      };
+    });
     return {
       project: project as Project,
       designer: designer ?? null,
       status,
+      thumbs,
       approved,
       total,
       itemCount: p.items.length,

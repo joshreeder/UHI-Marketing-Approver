@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { OverduePill, StatusPill } from "@/components/status-pill";
+import { VersionThumb } from "@/components/version-thumb";
 import { requireTeam } from "@/lib/auth/session";
 import { listDashboard, type DashboardFilter } from "@/lib/queries";
 import { displayName, fmtDate, fmtRelative } from "@/lib/format";
@@ -89,12 +90,24 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               {rows.map((r) => (
                 <tr key={r.project.id} className="hairline-b border-line last:border-b-0 hover:bg-canvas/60">
                   <td className="px-4 py-3">
-                    <Link href={`/projects/${r.project.id}`} className="font-medium text-ink hover:text-navy">
-                      {r.project.name}
-                    </Link>
-                    <div className="text-xs text-slate">
-                      {r.itemCount === 0 ? "No items" : `${r.itemCount} item${r.itemCount === 1 ? "" : "s"}`}
-                      {r.project.estHours ? ` · ${r.project.estHours} h est.` : ""}
+                    <div className="flex items-center gap-3">
+                      <div className="flex shrink-0 items-center gap-1">
+                        {r.thumbs.length === 0 ? (
+                          <VersionThumb version={null} title="Nothing uploaded yet" href={`/projects/${r.project.id}`} />
+                        ) : (
+                          r.thumbs.slice(0, 3).map((t) => <VersionThumb key={t.itemId} version={t.version} title={t.title} href={`/items/${t.itemId}`} />)
+                        )}
+                        {r.thumbs.length > 3 ? <span className="text-[10px] text-slate">+{r.thumbs.length - 3}</span> : null}
+                      </div>
+                      <div className="min-w-0">
+                        <Link href={`/projects/${r.project.id}`} className="font-medium text-ink hover:text-navy">
+                          {r.project.name}
+                        </Link>
+                        <div className="text-xs text-slate">
+                          {r.itemCount === 0 ? "Nothing uploaded yet" : r.itemCount === 1 ? r.thumbs[0]?.title : `${r.itemCount} pieces`}
+                          {r.project.estHours ? ` · ${r.project.estHours} h est.` : ""}
+                        </div>
+                      </div>
                     </div>
                   </td>
                   <td className="px-4 py-3">

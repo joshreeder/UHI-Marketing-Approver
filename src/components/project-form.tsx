@@ -40,8 +40,8 @@ export function ProjectForm({ action, initial, designers, mode, cancelHref }: Pr
             <Field label="Project name" error={err("name")}>
               <Input name="name" value={v.name} onChange={(e) => set("name", e.target.value)} required autoFocus placeholder="Fall auto mailer" />
             </Field>
-            <Field label="Description" hint="Optional">
-              <Textarea name="description" value={v.description} onChange={(e) => set("description", e.target.value)} rows={3} placeholder="Audience, goal, anything approvers should know." />
+            <Field label="Project brief" hint="Optional. What is it, who is it for, anything approvers should know.">
+              <Textarea name="description" value={v.description} onChange={(e) => set("description", e.target.value)} rows={3} placeholder="Postcard to current auto policyholders promoting the bundle discount. 6×9, two-sided." />
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Designer">
@@ -66,11 +66,6 @@ export function ProjectForm({ action, initial, designers, mode, cancelHref }: Pr
                 <Input name="dueDate" type="date" value={v.dueDate} onChange={(e) => set("dueDate", e.target.value)} />
               </Field>
             </div>
-            {mode === "create" ? (
-              <Field label="First item" hint="Optional. Creates the piece you will upload v1 to, e.g. “Mailer PDF”. Leave blank for a tracker-only project.">
-                <Input name="firstItemTitle" placeholder="Mailer PDF" />
-              </Field>
-            ) : null}
           </div>
         </section>
 
@@ -93,7 +88,7 @@ export function ProjectForm({ action, initial, designers, mode, cancelHref }: Pr
         <FormMessage message={state.error} />
         <div className="flex items-center gap-2">
           <Button type="submit" disabled={pending}>
-            {pending ? "Saving…" : mode === "create" ? "Create project" : "Save changes"}
+            {pending ? "Saving…" : mode === "create" ? "Create project and add the piece" : "Save changes"}
           </Button>
           <Button variant="ghost" nativeButton={false} render={<Link href={cancelHref} />}>
             Cancel

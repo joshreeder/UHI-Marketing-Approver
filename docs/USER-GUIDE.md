@@ -22,12 +22,13 @@ Everything is recorded in the activity log.
 Dashboard → **New project**. Name, dates, estimated hours, designer. The **review plan** fields (planned rounds, review window
 in days, revision days) drive the schedule preview on the right, which warns when the rounds will not fit before the due date.
 
-**First item** is optional. Type "Postcard PDF" or "Announcement email" to create the piece right away. Leave it blank for a
-tracker-only project. Add more items any time from the project page.
+Click **Create project and add the piece**. The project page opens with a drop zone: drag in the artwork or Word document,
+or switch to **Paste email or copy**. The piece is created automatically, named after the project. Most projects are one piece;
+**Add another piece** at the bottom of the project page covers campaigns with several.
 
 ## 2. Add a version: file or copy
 
-On the item page click **Add v1** (later **New version**). Two tabs:
+The first version goes in on the project page; later ones via **New version** on the piece's page. Two tabs:
 
 - **Upload a file** — drag a PDF, image, Word or PowerPoint file onto the box or click to choose. Up to 500 MB, so print-ready PDFs are fine. Word files get an
   approximate preview (original stays downloadable); PowerPoint is download-only, so export to PDF when slides must show in the browser.

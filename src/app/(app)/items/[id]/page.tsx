@@ -13,6 +13,7 @@ import { SendTestButton } from "@/components/send-test-button";
 import { DownloadWordMenu } from "@/components/download-word-menu";
 import { CopyDiff } from "@/components/copy-diff";
 import { DocxReviewNotice } from "@/components/docx-review-notice";
+import { VersionForm } from "@/components/version-form";
 import { VersionHistory } from "@/components/version-history";
 import { requireTeam } from "@/lib/auth/session";
 import { getItemDetail, listPastApproverEmails } from "@/lib/queries";
@@ -59,6 +60,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
           </span>
         }
         actions={
+          current ? (
           <UploadVersionDialog
             itemId={item.id}
             nextNumber={(current?.number ?? 0) + 1}
@@ -70,17 +72,16 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                 : undefined
             }
           />
+          ) : null
         }
       />
 
       {!current ? (
-        <div className="rounded-xl border border-dashed border-line bg-white px-6 py-16 text-center">
-          <p className="text-sm font-medium text-ink">No versions yet</p>
-          <p className="mt-1 text-sm text-slate">Upload a PDF, Word file or image, or write the copy in the editor, to preview it here and send it for approval.</p>
-          <div className="mt-4">
-            <UploadVersionDialog itemId={item.id} nextNumber={1} willResend={false} />
-          </div>
-        </div>
+        <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
+          <h2 className="text-base font-medium text-ink">Add the piece to review</h2>
+          <p className="mb-4 mt-1 text-sm text-slate">Drop in the artwork, PDF or Word document, or paste the email copy. You will preview it next and then send it to approvers.</p>
+          <VersionForm target={{ kind: "item", itemId: item.id }} nextNumber={1} inline />
+        </section>
       ) : (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-6">

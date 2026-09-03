@@ -15,7 +15,7 @@ export default async function NewProjectPage() {
   const [team, settings] = await Promise.all([listTeamMembers(), getSettings()]);
   return (
     <>
-      <PageHeader title="New project" description="Name it, set the dates, and pick how many review rounds you expect." />
+      <PageHeader title="New project" description="A short brief and the dates. On the next screen you drop in the artwork or paste the copy." />
       <ProjectForm
         mode="create"
         action={createProject}

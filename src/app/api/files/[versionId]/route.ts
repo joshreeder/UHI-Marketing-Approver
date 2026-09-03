@@ -15,18 +15,21 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ vers
   if (!session) return new NextResponse("Sign in required", { status: 401 });
 
   const [v] = await db.select().from(versions).where(eq(versions.id, versionId)).limit(1);
-  if (!v || !v.fileUrl) return new NextResponse("Not found", { status: 404 });
+  if (!v) return new NextResponse("Not found", { status: 404 });
   if (!canAccessItem(session, v.itemId)) return new NextResponse("Forbidden", { status: 403 });
 
-  const blob = await readPrivate(v.fileUrl);
+  const thumb = req.nextUrl.searchParams.get("thumb") === "1";
+  const url = thumb ? v.previewUrl : v.fileUrl;
+  if (!url) return new NextResponse("Not found", { status: 404 });
+  const blob = await readPrivate(url);
   if (!blob) return new NextResponse("File missing", { status: 404 });
 
-  const download = req.nextUrl.searchParams.get("download") === "1";
-  const filename = (v.fileName ?? `version-${v.number}`).replace(/["\r\n]/g, "");
+  const download = !thumb && req.nextUrl.searchParams.get("download") === "1";
+  const filename = thumb ? `thumb-v${v.number}.jpg` : (v.fileName ?? `version-${v.number}`).replace(/["\r\n]/g, "");
   const headers = new Headers();
-  headers.set("Content-Type", v.mime ?? blob.headers.get("content-type") ?? "application/octet-stream");
+  headers.set("Content-Type", thumb ? "image/jpeg" : (v.mime ?? blob.headers.get("content-type") ?? "application/octet-stream"));
   headers.set("Content-Disposition", `${download ? "attachment" : "inline"}; filename="${filename}"`);
-  headers.set("Cache-Control", "private, max-age=300");
+  headers.set("Cache-Control", thumb ? "private, max-age=86400" : "private, max-age=300");
   const len = blob.headers.get("content-length");
   if (len) headers.set("Content-Length", len);
   headers.set("X-Content-Type-Options", "nosniff");

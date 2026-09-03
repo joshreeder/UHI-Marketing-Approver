@@ -3,14 +3,16 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
 import { ActivityFeed } from "@/components/activity-feed";
-import { AddItemForm } from "@/components/add-item-form";
+import { ProjectIntake } from "@/components/project-intake";
+import { QuickDrop } from "@/components/quick-drop";
+import { VersionThumb } from "@/components/version-thumb";
 import { ScheduleBar } from "@/components/schedule-bar";
 import { OverduePill, RoundPill, StatusPill } from "@/components/status-pill";
 import { requireTeam } from "@/lib/auth/session";
 import { getProjectDetail } from "@/lib/queries";
 import { daysOverdue, displayName, fmtDate, fmtDateTime } from "@/lib/format";
 import { MANUAL_STATUSES } from "@/lib/status";
-import { addItem, archiveProject, setProjectStatus } from "../actions";
+import { archiveProject, setProjectStatus } from "../actions";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -28,7 +30,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const isManual = MANUAL_STATUSES.includes(project.status);
   const statusAction = setProjectStatus.bind(null, project.id);
   const archiveAction = archiveProject.bind(null, project.id);
-  const addItemAction = addItem.bind(null, project.id);
 
   return (
     <>
@@ -71,34 +72,30 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
-          <section className="rounded-xl border border-line bg-white">
-            <div className="hairline-b border-line flex items-center justify-between px-5 py-3">
-              <h2 className="text-sm font-medium text-ink">Items</h2>
-              <span className="text-xs text-slate">{items.length === 0 ? "None yet" : `${items.length}`}</span>
-            </div>
-            {items.length === 0 ? (
-              <p className="px-5 py-6 text-sm text-slate">
-                No items yet. Add one to upload a proof, or keep this as a tracker-only project.
-              </p>
-            ) : (
-              <ul>
-                {items.map((it) => {
-                  const v = it.latestVersion;
-                  const round = v?.round;
-                  const approved = round?.approvals.filter((a) => a.status === "approved").length ?? 0;
-                  const total = round?.approvals.length ?? 0;
-                  const roundOverdue = round && (round.status === "pending" || round.status === "changes_requested") && round.dueAt < new Date();
-                  return (
-                    <li key={it.id} className="hairline-b border-line last:border-b-0">
-                      <Link href={`/items/${it.id}`} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3 hover:bg-canvas/60">
-                        <div className="min-w-0 flex-1">
-                          <div className="font-medium text-ink">{it.title}</div>
-                          <div className="text-xs text-slate">
-                            {v ? `v${v.number} · ${fmtDate(v.createdAt)} · ${displayName(v.uploader)}` : "No versions yet"}
-                            {it.versionCount > 1 ? ` · ${it.versionCount} versions` : ""}
-                          </div>
+          {items.length === 0 ? (
+            <ProjectIntake projectId={project.id} projectName={project.name} />
+          ) : (
+            <section className="space-y-3">
+              {items.map((it) => {
+                const v = it.latestVersion;
+                const round = v?.round;
+                const approved = round?.approvals.filter((a) => a.status === "approved").length ?? 0;
+                const total = round?.approvals.length ?? 0;
+                const roundOverdue = round && (round.status === "pending" || round.status === "changes_requested") && round.dueAt < new Date();
+                return (
+                  <div key={it.id} className="rounded-xl border border-line bg-white p-4">
+                    <div className="flex flex-wrap items-start gap-4">
+                      <VersionThumb version={v} title={it.title} href={`/items/${it.id}`} size="md" />
+                      <div className="min-w-0 flex-1">
+                        <Link href={`/items/${it.id}`} className="font-medium text-ink hover:text-navy">
+                          {it.title}
+                        </Link>
+                        <div className="mt-0.5 text-xs text-slate">
+                          {v ? `v${v.number} · ${fmtDate(v.createdAt)} · ${displayName(v.uploader)}` : "Nothing uploaded yet"}
+                          {it.versionCount > 1 ? ` · ${it.versionCount} versions` : ""}
+                          {v?.note ? ` — ${v.note}` : ""}
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-slate">
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate">
                           {round ? (
                             <>
                               <RoundPill status={round.status} />
@@ -106,19 +103,40 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                               {roundOverdue ? <span className="text-brand-red">due {fmtDate(round.dueAt)}</span> : null}
                             </>
                           ) : v ? (
-                            <span className="pill pill-not-started">Not sent</span>
+                            <>
+                              <span className="pill pill-not-started">Not sent</span>
+                              <Link href={`/items/${it.id}`} className="text-navy hover:underline">
+                                Send for approval →
+                              </Link>
+                            </>
                           ) : null}
                         </div>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-            <div className="hairline-t border-line px-5 py-3">
-              <AddItemForm action={addItemAction} defaultWindow={project.reviewWindowDays} />
-            </div>
-          </section>
+                      </div>
+                      <div className="w-full sm:w-64">
+                        <QuickDrop
+                          target={{ kind: "item", itemId: it.id }}
+                          nextNumber={(v?.number ?? 0) + 1}
+                          willResend={!!round && round.status !== "superseded"}
+                          label={v ? `Drop v${v.number + 1} of ${it.title}` : `Drop the file for ${it.title}`}
+                          hint={round && round.status !== "superseded" ? "Re-sends to the current approvers" : undefined}
+                          goToItem={!v}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              <QuickDrop
+                target={{ kind: "new-item", projectId: project.id }}
+                nextNumber={1}
+                label="Add another piece to this project"
+                hint="Drop a file to start a new piece (named after the file)"
+                copyLabel="or start one by writing copy"
+                size="large"
+                goToItem
+              />
+            </section>
+          )}
 
           <section className="rounded-xl border border-line bg-white p-5">
             <h2 className="text-sm font-medium text-ink">Planned schedule</h2>

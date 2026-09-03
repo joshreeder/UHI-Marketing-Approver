@@ -72,14 +72,14 @@ export default async function HelpPage() {
               you when the rounds will not fit before the due date.
             </p>
             <p>
-              <b>First item</b> is optional: type “Postcard PDF” or “Announcement email” to create the piece right away and land on its page. Leave it blank for a
-              tracker-only project (dates and status, nothing to review yet). You can add items later from the project page.
+              Click <b>Create project and add the piece</b>. You land on the project page with a big drop zone: drag in the artwork, PDF or Word document, or switch to
+              <b> Paste email or copy</b>. The piece is created for you, named after the project. Leave the drop zone alone if it is a tracker-only project for now.
             </p>
           </Section>
 
           <Section id="version" title="2. Add a version: file or copy">
             <p>
-              On an item page click <b>Add v1</b> (later <b>New version</b>). The dialog has two tabs:
+              The first version goes in right on the project page. Later versions use <b>New version</b> on the piece’s page. Both offer two tabs:
             </p>
             <ul>
               <li>
@@ -93,7 +93,8 @@ export default async function HelpPage() {
               </li>
             </ul>
             <p>
-              Add a short <b>version note</b> (“Fixed logo size, updated dates”). It is shown to approvers and in the history.
+              Add a short <b>note for approvers</b> (“Fixed logo size, updated dates”). It is shown in the email and in the history. Most projects are one piece; if a
+              campaign has several (a postcard and a follow-up email), use <b>Add another piece</b> at the bottom of the project page.
             </p>
             <h3 className="text-base text-ink">Word files with tracked changes or comments</h3>
             <p>
