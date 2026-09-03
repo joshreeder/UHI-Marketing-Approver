@@ -35,7 +35,6 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const [detail, pastApprovers, settings] = await Promise.all([getItemDetail(id), listPastApproverEmails(), getSettings()]);
   if (!detail) notFound();
-  const settings = await getSettings();
   const { item, project, versions, current, activity } = detail;
   const previous = versions[1] ?? null;
   const showDiff = !!current && !!previous && isCopyVersion(current) && isCopyVersion(previous);

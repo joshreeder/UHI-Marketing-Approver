@@ -30,7 +30,6 @@ export default async function ReviewItemPage({ params }: { params: Promise<{ ite
 
   const [detail, settings] = await Promise.all([getItemDetail(itemId), getSettings()]);
   if (!detail) redirect("/review/expired");
-  const settings = await getSettings();
   const { item, project, versions, current } = detail;
   const previous = versions[1] ?? null;
   const showDiff = !!current && !!previous && isCopyVersion(current) && isCopyVersion(previous);
