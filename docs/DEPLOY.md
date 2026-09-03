@@ -7,7 +7,7 @@ Every push to `main` deploys production; PRs get preview deployments.
 
 - Vercel Blob store `approval-hub-files` (private) linked → `BLOB_READ_WRITE_TOKEN` on all environments
 - `SESSION_SECRET`, `CRON_SECRET` (production + preview), `APP_URL` (production), `EMAIL_FROM` (production + preview)
-- Cron: `vercel.json` runs `/api/cron/reminders` daily at 14:00 UTC (8 am Mountain)
+- Cron: `vercel.json` runs `/api/cron/reminders` at 14:00 and 15:00 UTC; the route only acts when it is 8 AM in the company time zone, so reminders are a fixed 8 AM local year-round (`?force=1` bypasses the check)
 - `packageManager` pinned to pnpm 10 (pnpm 11 on Vercel rejects packages younger than 24 h)
 - Neon database `approval-hub-db` (region iad1) created on the team's existing Neon installation, which is on
   Neon's **Launch** plan (it was set up earlier via v0). Picking "Free" in the Vercel form fails because the plan is

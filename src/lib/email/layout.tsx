@@ -22,7 +22,7 @@ const canvas = "#F7F8FA";
 export const emailStyles = {
   body: { backgroundColor: canvas, fontFamily: "Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif", margin: 0, padding: "24px 0" },
   container: { backgroundColor: "#FFFFFF", border: `1px solid ${line}`, borderRadius: 12, maxWidth: 560, margin: "0 auto", padding: "28px 32px" },
-  logo: { display: "block", height: 56, width: "auto" },
+  logo: { display: "block", height: 72, width: "auto" },
   h1: { color: ink, fontSize: 20, fontWeight: 500, lineHeight: "28px", margin: "20px 0 8px" },
   p: { color: ink, fontSize: 15, lineHeight: "24px", margin: "0 0 12px" },
   muted: { color: slate, fontSize: 13, lineHeight: "20px", margin: "0 0 8px" },
@@ -44,7 +44,7 @@ export function EmailLayout({ preview, children }: { preview: string; children: 
           <Img
             src={`${env.APP_URL}/brand/united-heritage-logo.png`}
             alt="United Heritage Insurance"
-            height={56}
+            height={72}
             style={emailStyles.logo}
           />
           {children}

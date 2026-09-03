@@ -187,7 +187,7 @@ export default async function HelpPage() {
           <Section id="reminders" title="6. Reminders and nudges">
             <ul>
               <li>
-                <b>Automatic</b>: a reminder halfway through the review window and another on the due date. Both can be turned off in Settings. They go out once a day at 8 am Mountain.
+                <b>Automatic</b>: a reminder halfway through the review window and another on the due date. Both can be turned off in Settings. They go out once a day at 8 AM in the company time zone, year-round.
               </li>
               <li>
                 <b>Nudge</b>: next to any waiting approver on the item page. Sends a reminder now and logs it (“Nudged 2× · last 2 h ago”). Limited to once per hour per person so nobody is spammed.

@@ -42,7 +42,7 @@ export default async function ReviewItemPage({ params }: { params: Promise<{ ite
     <div className="min-h-dvh bg-canvas pb-32">
       <header className="border-b border-line bg-white">
         <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-3 sm:px-6">
-          <BrandLogo href={session.isTeam ? `/items/${item.id}` : null} size={40} />
+          <BrandLogo href={session.isTeam ? `/items/${item.id}` : null} size={48} />
           <div className="min-w-0 flex-1">
             <div className="truncate text-xs text-slate">{project.name}</div>
             <h1 className="truncate text-base font-medium text-ink sm:text-lg">

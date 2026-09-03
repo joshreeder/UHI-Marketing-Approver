@@ -66,6 +66,14 @@ export function todayInTz(tz = getTimeZone(), now = new Date()): Date {
   return new Date(p.year, p.month - 1, p.day);
 }
 
+/** Local hour (0-23) at which automatic reminders go out, year-round. */
+export const REMINDER_HOUR_LOCAL = 8;
+
+/** True when it is currently the reminder hour in the company zone. */
+export function isReminderHour(now = new Date(), tz = getTimeZone()): boolean {
+  return partsInTz(now, tz).hour === REMINDER_HOUR_LOCAL;
+}
+
 /** Formats a fixed UTC hour (e.g. the cron schedule) as a local time in the company zone, like "8:00 AM". */
 export function utcHourInTz(hourUtc: number, tz = getTimeZone()): string {
   const d = new Date(Date.UTC(2026, 0, 15, hourUtc, 0, 0)); // mid-January: standard time

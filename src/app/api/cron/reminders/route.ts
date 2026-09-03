@@ -5,14 +5,17 @@ import { approvals, reviewRounds } from "@/lib/db/schema";
 import { env } from "@/lib/env";
 import { sendReminder } from "@/lib/rounds";
 import { getSettings } from "@/lib/settings";
+import { isReminderHour, REMINDER_HOUR_LOCAL, getTimeZone } from "@/lib/tz";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /**
- * Daily reminders (vercel.json cron). Each waiting approver gets at most one email at the
- * halfway point of the review window and one on/after the due date; sendReminder() also
- * enforces the 1-hour cooldown shared with the Nudge button.
+ * Daily reminders. vercel.json fires this at 14:00 and 15:00 UTC (the two possible UTC hours for
+ * 8 AM Mountain across daylight saving); only the run that lands on 8 AM in the company zone does
+ * anything, so reminders go out at a fixed local time year-round. Pass ?force=1 to run regardless.
+ * Each waiting approver gets at most one email at the halfway point of the review window and one
+ * on/after the due date; sendReminder() also enforces the 1-hour cooldown shared with Nudge.
  */
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization");
@@ -21,6 +24,10 @@ export async function GET(req: NextRequest) {
   }
   const settings = await getSettings();
   const now = new Date();
+  const force = req.nextUrl.searchParams.get("force") === "1";
+  if (!force && !isReminderHour(now)) {
+    return NextResponse.json({ ok: true, skipped: true, reason: `Not ${REMINDER_HOUR_LOCAL}:00 in ${getTimeZone()}`, at: now.toISOString() });
+  }
 
   const rows = await db
     .select({ approval: approvals, round: reviewRounds })

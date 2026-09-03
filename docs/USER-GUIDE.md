@@ -99,7 +99,7 @@ Superseded, its approvers are copied to the new round and emailed "New version r
 
 ## 6. Reminders and nudges
 
-- Automatic reminders halfway through the review window and on the due date (daily, 8 am Mountain; toggle in Settings).
+- Automatic reminders halfway through the review window and on the due date (daily at 8 AM in the company time zone, year-round; toggle in Settings).
 - **Nudge** next to any waiting approver sends a reminder now and logs it. Limited to once per hour per person.
 
 ## 7. Statuses, due dates and search
