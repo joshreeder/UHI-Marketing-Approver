@@ -22,6 +22,13 @@
       "when": 1788393267816,
       "tag": "0002_word_copy",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788401072322,
+      "tag": "0003_comment_resolutions",
+      "breakpoints": true
     }
   ]
 }

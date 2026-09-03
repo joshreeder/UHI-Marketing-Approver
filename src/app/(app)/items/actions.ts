@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { comments, items, versions } from "@/lib/db/schema";
@@ -10,6 +10,7 @@ import { logActivity } from "@/lib/activity";
 import { DOCX_MIME, isAllowedMime, MAX_UPLOAD_BYTES } from "@/lib/blob";
 import { processDocxUpload } from "@/lib/docx";
 import { isCopyEmpty, textToHtml } from "@/lib/copy";
+import { summarizeResolutions, type CommentResolution } from "@/lib/resolutions";
 import { sanitizeCopyHtml } from "@/lib/copy-server";
 import { describeDocxReview, unresolvedCount, type DocxReview } from "@/lib/docx-review";
 import { refreshProjectStatus } from "@/lib/queries";
@@ -25,6 +26,7 @@ async function loadItem(itemId: string) {
 
 type VersionValues = {
   note: string;
+  resolutions?: CommentResolution[];
   previewHtml?: string | null;
   docxReview?: DocxReview | null;
   previewUrl?: string | null;
@@ -80,6 +82,39 @@ async function insertVersion(session: Awaited<ReturnType<typeof requireTeam>>, i
     },
   });
 
+  // Apply the designer's checklist: which approver comments this version addresses, defers or declines.
+  let changes = null;
+  const resolutions = (values.resolutions ?? []).filter((r) => r.commentId && r.resolution);
+  if (resolutions.length) {
+    const ids = resolutions.map((r) => r.commentId);
+    const rows = await db
+      .select({ id: comments.id, body: comments.body, versionId: comments.versionId })
+      .from(comments)
+      .innerJoin(versions, eq(versions.id, comments.versionId))
+      .where(and(inArray(comments.id, ids), eq(versions.itemId, item.id)));
+    const valid = new Set(rows.map((r) => r.id));
+    for (const r of resolutions) {
+      if (!valid.has(r.commentId)) continue;
+      await db
+        .update(comments)
+        .set({
+          resolution: r.resolution,
+          resolvedInVersionId: version.id,
+          addressedInVersionId: r.resolution === "addressed" ? version.id : null,
+        })
+        .where(eq(comments.id, r.commentId));
+    }
+    changes = summarizeResolutions(rows, resolutions.filter((r) => valid.has(r.commentId)));
+    await logActivity({
+      projectId: item.projectId,
+      itemId: item.id,
+      versionId: version.id,
+      actorId: session.user.id,
+      type: "comments_resolved",
+      meta: { versionNumber: number, addressed: changes.addressed.length, deferred: changes.deferred.length, declined: changes.declined.length },
+    });
+  }
+
   let message = `v${number} ${values.emailHtml ? "saved" : "uploaded"}.`;
   if (prev) {
     const result = await supersedeWithNewVersion({
@@ -87,6 +122,7 @@ async function insertVersion(session: Awaited<ReturnType<typeof requireTeam>>, i
       newVersionId: version.id,
       actor: session.user,
       reviewWindowDays: item.reviewWindowDays ?? item.project.reviewWindowDays,
+      changes,
     });
     if (result) message = `v${number} ${values.emailHtml ? "saved" : "uploaded"} and sent to ${result.sent} approver${result.sent === 1 ? "" : "s"}.`;
   }
@@ -97,7 +133,10 @@ async function insertVersion(session: Awaited<ReturnType<typeof requireTeam>>, i
   return { ok: true as const, message, versionId: version.id };
 }
 
+const resolutionSchema = z.array(z.object({ commentId: z.string().uuid(), resolution: z.enum(["addressed", "deferred", "declined"]) })).max(200).optional();
+
 const versionSchema = z.object({
+  resolutions: resolutionSchema,
   itemId: z.string().uuid(),
   note: z.string().trim().max(2000).optional().default(""),
   fileUrl: z.string().url(),
@@ -122,6 +161,7 @@ export async function createVersion(input: z.input<typeof versionSchema>): Promi
 }
 
 const copySchema = z.object({
+  resolutions: resolutionSchema,
   itemId: z.string().uuid(),
   note: z.string().trim().max(2000).optional().default(""),
   subject: z.string().trim().max(300).optional().default(""),
@@ -140,6 +180,7 @@ export async function createCopyVersion(input: z.input<typeof copySchema>): Prom
   if (isCopyEmpty(html)) return { ok: false, error: "Write or paste the copy first." };
   return insertVersion(session, d.itemId, {
     note: d.note,
+    resolutions: d.resolutions,
     emailSubject: d.subject || null,
     emailFromName: d.fromName || null,
     emailHtml: html,

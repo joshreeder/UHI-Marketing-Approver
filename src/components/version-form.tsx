@@ -14,6 +14,8 @@ import { wordCount } from "@/lib/copy";
 import { canonicalMime } from "@/lib/mime";
 import { cn } from "@/lib/utils";
 import { ACCEPT, saveVersion, validateFile, type SaveTarget } from "@/lib/client/save-version";
+import { ResolutionChecklist } from "@/components/resolution-checklist";
+import type { CommentResolution, OpenComment } from "@/lib/resolutions";
 
 const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
@@ -36,15 +38,20 @@ export type VersionFormProps = {
   initialCopy?: { subject: string; fromName: string; body: string };
   /** Bigger drop zone and copy box for the inline "get started" panel. */
   inline?: boolean;
+  /** Approver comments still open on this piece; shown as a checklist to resolve with this version. */
+  openComments?: OpenComment[];
+  /** File already chosen (e.g. dropped on a hotspot) so the form opens with it selected. */
+  initialFile?: File | null;
   onCancel?: () => void;
   onSaved?: (result: { itemId: string; versionId?: string }) => void;
 };
 
 /** Shared file / paste-copy form used inline on project and item pages and inside the "New version" dialog. */
-export function VersionForm({ target, nextNumber, willResend = false, defaultMode = "file", initialCopy, inline = false, onCancel, onSaved }: VersionFormProps) {
+export function VersionForm({ target, nextNumber, willResend = false, defaultMode = "file", initialCopy, inline = false, openComments = [], initialFile = null, onCancel, onSaved }: VersionFormProps) {
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>(defaultMode);
-  const [file, setFile] = useState<File | null>(null);
+  const [mode, setMode] = useState<Mode>(initialFile ? "file" : defaultMode);
+  const [file, setFile] = useState<File | null>(initialFile);
+  const [resolutions, setResolutions] = useState<CommentResolution[]>([]);
   const [note, setNote] = useState("");
   const [subject, setSubject] = useState(initialCopy?.subject ?? "");
   const [fromName, setFromName] = useState(initialCopy?.fromName ?? "");
@@ -90,7 +97,7 @@ export function VersionForm({ target, nextNumber, willResend = false, defaultMod
       setBusy(mode === "file" ? "uploading" : "saving");
       const result = await saveVersion(
         target,
-        mode === "file" ? { mode: "file", file: file!, note } : { mode: "copy", body, subject, fromName, note },
+        mode === "file" ? { mode: "file", file: file!, note, resolutions } : { mode: "copy", body, subject, fromName, note, resolutions },
         nextNumber,
         (pct) => {
           setProgress(pct);
@@ -232,8 +239,10 @@ export function VersionForm({ target, nextNumber, willResend = false, defaultMod
         </div>
       ) : null}
 
+      <ResolutionChecklist comments={openComments} value={resolutions} onChange={setResolutions} />
+
       <div className="space-y-1.5">
-        <Label htmlFor="note">Note for approvers</Label>
+        <Label htmlFor="note">{openComments.length ? "Anything else that changed" : "Note for approvers"}</Label>
         <Input id="note" value={note} onChange={(e) => setNote(e.target.value)} placeholder={nextNumber === 1 ? "Optional — e.g. First draft, headline still TBD" : "What changed — e.g. Fixed logo size, updated dates"} />
       </div>
 

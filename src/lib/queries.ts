@@ -20,6 +20,7 @@ import {
   type Version,
 } from "@/lib/db/schema";
 import { deriveProjectStatus, MANUAL_STATUSES } from "@/lib/status";
+import { openCommentsFromVersions, type OpenComment } from "@/lib/resolutions";
 
 // Team ---------------------------------------------------------------------
 
@@ -166,6 +167,7 @@ export async function listDashboard(filter: DashboardFilter, currentUserId: stri
 export type ItemSummary = Item & {
   latestVersion: (Version & { uploader: User; round: (ReviewRound & { approvals: Approval[] }) | null }) | null;
   versionCount: number;
+  openComments: OpenComment[];
 };
 
 export type ProjectDetail = {
@@ -188,7 +190,7 @@ export async function getProjectDetail(id: string): Promise<ProjectDetail | null
         with: {
           versions: {
             orderBy: desc(versions.number),
-            with: { uploader: true, round: { with: { approvals: true } } },
+            with: { uploader: true, round: { with: { approvals: true } }, comments: { with: { author: true } } },
           },
         },
       },
@@ -198,7 +200,7 @@ export async function getProjectDetail(id: string): Promise<ProjectDetail | null
   if (!p) return null;
   const summaries: ItemSummary[] = p.items.map((it) => {
     const { versions: vs, ...rest } = it;
-    return { ...rest, latestVersion: vs[0] ?? null, versionCount: vs.length };
+    return { ...rest, latestVersion: vs[0] ?? null, versionCount: vs.length, openComments: openCommentsFromVersions(vs) };
   });
   const status = deriveProjectStatus(
     p,

@@ -8,6 +8,7 @@ import { ReviewActions } from "@/components/review-actions";
 import { AddCommentForm } from "@/components/add-comment-form";
 import { VersionHistory } from "@/components/version-history";
 import { RoundPill } from "@/components/status-pill";
+import { ChangesCard } from "@/components/changes-card";
 import { CopyDiff } from "@/components/copy-diff";
 import { DocxReviewNotice } from "@/components/docx-review-notice";
 import { DownloadWordMenu } from "@/components/download-word-menu";
@@ -69,6 +70,7 @@ export default async function ReviewItemPage({ params }: { params: Promise<{ ite
                 ) : null}
               </div>
               {current.note ? <p className="mt-3 rounded-lg bg-canvas px-3 py-2 text-ink">{current.note}</p> : null}
+              <ChangesCard versions={versions} versionId={current.id} className="mt-3" />
               {isCopyVersion(current) ? (
                 <div className="mt-3 flex justify-end">
                   <DownloadWordMenu versionId={current.id} hasLetterhead={!!settings.letterhead} size="sm" variant="outline" />

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { VersionForm, type Mode } from "@/components/version-form";
+import type { OpenComment } from "@/lib/resolutions";
 
 export function UploadVersionDialog({
   itemId,
@@ -12,6 +13,7 @@ export function UploadVersionDialog({
   willResend,
   defaultMode = "file",
   initialCopy,
+  openComments = [],
   trigger,
 }: {
   itemId: string;
@@ -19,6 +21,7 @@ export function UploadVersionDialog({
   willResend: boolean;
   defaultMode?: Mode;
   initialCopy?: { subject: string; fromName: string; body: string };
+  openComments?: OpenComment[];
   trigger?: React.ReactElement;
 }) {
   const router = useRouter();
@@ -37,6 +40,7 @@ export function UploadVersionDialog({
           willResend={willResend}
           defaultMode={defaultMode}
           initialCopy={initialCopy}
+          openComments={openComments}
           onCancel={() => setOpen(false)}
           onSaved={() => {
             setOpen(false);

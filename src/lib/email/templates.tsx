@@ -1,5 +1,6 @@
 import { Text } from "@react-email/components";
 import { CtaButton, EmailLayout, emailStyles as s } from "./layout";
+import type { ChangeSummary } from "@/lib/resolutions";
 
 type PieceInfo = {
   projectName: string;
@@ -9,7 +10,30 @@ type PieceInfo = {
   dueText: string;
   reviewUrl: string;
   note?: string | null;
+  changes?: ChangeSummary | null;
 };
+
+function ChangeList({ changes }: { changes?: ChangeSummary | null }) {
+  if (!changes || (!changes.addressed.length && !changes.deferred.length && !changes.declined.length)) return null;
+  const block = (title: string, items: string[]) =>
+    items.length ? (
+      <>
+        <Text style={{ ...s.meta, marginTop: 10 }}>{title}</Text>
+        {items.map((t, i) => (
+          <Text key={i} style={{ ...s.p, margin: "0 0 4px 12px" }}>
+            • {t}
+          </Text>
+        ))}
+      </>
+    ) : null;
+  return (
+    <>
+      {block("Addressed in this version", changes.addressed)}
+      {block("Coming in a later version", changes.deferred)}
+      {block("Not changing", changes.declined)}
+    </>
+  );
+}
 
 export function ApprovalRequestEmail(p: PieceInfo) {
   return (
@@ -43,7 +67,8 @@ export function NewVersionEmail(p: PieceInfo) {
           <Text style={s.note}>{p.note}</Text>
         </>
       ) : null}
-      <Text style={s.meta}>
+      <ChangeList changes={p.changes} />
+      <Text style={{ ...s.meta, marginTop: 12 }}>
         Due <span style={s.metaStrong}>{p.dueText}</span>
       </Text>
       <CtaButton href={p.reviewUrl}>Review now</CtaButton>

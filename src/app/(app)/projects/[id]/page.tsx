@@ -118,7 +118,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                           nextNumber={(v?.number ?? 0) + 1}
                           willResend={!!round && round.status !== "superseded"}
                           label={v ? `Drop v${v.number + 1} of ${it.title}` : `Drop the file for ${it.title}`}
-                          hint={round && round.status !== "superseded" ? "Re-sends to the current approvers" : undefined}
+                          hint={it.openComments.length ? `${it.openComments.length} comment${it.openComments.length === 1 ? "" : "s"} to resolve · re-sends to approvers` : round && round.status !== "superseded" ? "Re-sends to the current approvers" : undefined}
+                          openComments={it.openComments}
                           goToItem={!v}
                         />
                       </div>

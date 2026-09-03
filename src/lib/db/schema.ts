@@ -211,6 +211,9 @@ export const comments = pgTable(
     addressedInVersionId: uuid("addressed_in_version_id").references(() => versions.id, {
       onDelete: "set null",
     }),
+    /** Designer's decision when the next version was uploaded: addressed | deferred | declined. */
+    resolution: text("resolution"),
+    resolvedInVersionId: uuid("resolved_in_version_id").references(() => versions.id, { onDelete: "set null" }),
     ...timestamps,
   },
   (t) => [index("comments_version_idx").on(t.versionId)],

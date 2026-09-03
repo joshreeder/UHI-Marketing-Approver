@@ -11,6 +11,7 @@ import { displayName, fmtDueLong } from "@/lib/format";
 import { logActivity } from "@/lib/activity";
 import { refreshProjectStatus, teamRecipientsForVersion } from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
+import type { ChangeSummary } from "@/lib/resolutions";
 
 export const NUDGE_COOLDOWN_HOURS = 1;
 
@@ -58,6 +59,8 @@ type StartRoundInput = {
   actor: User;
   /** Internal: which email template to use. */
   template?: "request" | "new_version";
+  /** What this version did about earlier comments (new-version emails). */
+  changes?: ChangeSummary | null;
 };
 
 /**
@@ -108,6 +111,7 @@ export async function startRound(input: StartRoundInput): Promise<{ roundId: str
         dueText: fmtDueLong(dueAt),
         reviewUrl: reviewUrl(tokens.get(u.id)!),
         note: input.note ?? version.note,
+        changes: input.changes ?? null,
       }),
     });
     if (!result.ok) {
@@ -133,7 +137,7 @@ export async function startRound(input: StartRoundInput): Promise<{ roundId: str
  * approvers to a fresh round on the new version, and email them. No-op when the previous
  * version was never sent.
  */
-export async function supersedeWithNewVersion(input: { previousVersionId: string; newVersionId: string; actor: User; reviewWindowDays: number }) {
+export async function supersedeWithNewVersion(input: { previousVersionId: string; newVersionId: string; actor: User; reviewWindowDays: number; changes?: ChangeSummary | null }) {
   const prev = await db.query.reviewRounds.findFirst({
     where: eq(reviewRounds.versionId, input.previousVersionId),
     with: { approvals: { with: { user: true } } },
@@ -159,6 +163,7 @@ export async function supersedeWithNewVersion(input: { previousVersionId: string
     reviewWindowDays: input.reviewWindowDays,
     actor: input.actor,
     template: "new_version",
+    changes: input.changes ?? null,
   });
 }
 

@@ -1,6 +1,7 @@
 import { RoundPill } from "@/components/status-pill";
 import { ApproversList } from "@/components/approvers-list";
 import { MarkAddressedButton } from "@/components/mark-addressed-button";
+import { RESOLUTION_CLASS, RESOLUTION_LABEL, type Resolution } from "@/lib/resolutions";
 import { displayName, fmtBytes, fmtDate, fmtDateTime } from "@/lib/format";
 import type { VersionDetail } from "@/lib/queries";
 import { htmlToText, isCopyVersion, wordCount } from "@/lib/copy";
@@ -91,9 +92,16 @@ export function VersionHistory({
                             <span className="mr-1.5 inline-flex size-4 items-center justify-center rounded-full bg-navy text-[10px] text-white">{i + 1}</span>
                             {c.author ? displayName(c.author) : "Approver"} · {fmtDateTime(c.createdAt)}
                             {c.x != null ? <span className="ml-2 text-navy">Pinned{c.pageNo ? ` · page ${c.pageNo}` : ""}</span> : null}
-                            {c.addressedInVersionId ? <span className="ml-2 text-[var(--status-approved)]">Addressed</span> : null}
+                            {c.resolution ? (
+                              <span className={`ml-2 rounded-full px-1.5 py-0.5 ${RESOLUTION_CLASS[c.resolution as Resolution] ?? ""}`}>
+                                {RESOLUTION_LABEL[c.resolution as Resolution] ?? c.resolution}
+                                {c.resolvedInVersionId ? ` in v${versions.find((x) => x.id === c.resolvedInVersionId)?.number ?? "?"}` : ""}
+                              </span>
+                            ) : c.addressedInVersionId ? (
+                              <span className="ml-2 text-[var(--status-approved)]">Addressed</span>
+                            ) : null}
                           </span>
-                          {isTeam && newest && newest.id !== v.id ? (
+                          {isTeam && newest && newest.id !== v.id && !c.resolution ? (
                             <MarkAddressedButton commentId={c.id} addressedInVersionId={newest.id} addressed={!!c.addressedInVersionId} />
                           ) : null}
                         </div>

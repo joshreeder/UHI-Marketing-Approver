@@ -14,6 +14,8 @@ import { DownloadWordMenu } from "@/components/download-word-menu";
 import { CopyDiff } from "@/components/copy-diff";
 import { DocxReviewNotice } from "@/components/docx-review-notice";
 import { VersionForm } from "@/components/version-form";
+import { ChangesCard } from "@/components/changes-card";
+import { openCommentsFromVersions } from "@/lib/resolutions";
 import { VersionHistory } from "@/components/version-history";
 import { requireTeam } from "@/lib/auth/session";
 import { getItemDetail, listPastApproverEmails } from "@/lib/queries";
@@ -71,6 +73,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                 ? { subject: current.emailSubject ?? "", fromName: current.emailFromName ?? "", body: current.emailHtml ?? "" }
                 : undefined
             }
+            openComments={openCommentsFromVersions(versions)}
           />
           ) : null
         }
@@ -110,6 +113,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                 ) : null}
               </div>
               {current.note ? <p className="mt-3 rounded-lg bg-canvas px-3 py-2 text-sm text-ink">{current.note}</p> : null}
+              <ChangesCard versions={versions} versionId={current.id} className="mt-3" />
               {current.docxReview ? (
                 <DocxReviewNotice review={current.docxReview} fileName={current.fileName} downloadHref={`/api/files/${current.id}?download=1`} audience="team" showClean className="mt-3" />
               ) : null}

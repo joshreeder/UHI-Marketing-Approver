@@ -73,6 +73,9 @@ function GanttChartInner({ rows, from, to, today }: { rows: Row[]; from: string;
 
   const [drag, setDrag] = useState<{ id: string; startX: number; dx: number } | null>(null);
   const dragRef = useRef<typeof drag>(null);
+  // Keep the bar where it was dropped until the server round-trips and the rows prop updates.
+  const [pendingShift, setPendingShift] = useState<{ id: string; days: number } | null>(null);
+  useEffect(() => setPendingShift(null), [rows]);
 
   function onPointerDown(e: React.PointerEvent, id: string) {
     e.preventDefault();
@@ -94,12 +97,16 @@ function GanttChartInner({ rows, from, to, today }: { rows: Row[]; from: string;
     if (!d) return;
     const days = Math.round(d.dx / PX_PER_DAY);
     if (days === 0) return;
+    setPendingShift({ id: d.id, days });
     start(async () => {
       const r = await shiftProjectDates(d.id, days);
       if (r.ok) {
         toast.success(`Moved ${Math.abs(days)} day${Math.abs(days) === 1 ? "" : "s"} ${days > 0 ? "later" : "earlier"}.`);
         router.refresh();
-      } else toast.error(r.error ?? "Could not move project.");
+      } else {
+        setPendingShift(null);
+        toast.error(r.error ?? "Could not move project.");
+      }
     });
   }
 
@@ -162,7 +169,7 @@ function GanttChartInner({ rows, from, to, today }: { rows: Row[]; from: string;
               const y = HEADER_H + i * ROW_H;
               const s = r.start ? x(r.start) : null;
               const e = r.due ? x(r.due) + PX_PER_DAY : null; // due date inclusive
-              const dx = drag?.id === r.id ? drag.dx : 0;
+              const dx = drag?.id === r.id ? drag.dx : pendingShift?.id === r.id ? pendingShift.days * PX_PER_DAY : 0;
               const barX = (s ?? (e ?? 0) - PX_PER_DAY) + dx;
               const barW = Math.max(PX_PER_DAY, (e ?? (s ?? 0) + PX_PER_DAY) - (s ?? (e ?? 0) - PX_PER_DAY));
               return (

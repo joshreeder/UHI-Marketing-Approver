@@ -24,6 +24,7 @@ export type ActivityType =
   | "reminder_sent"
   | "email_failed"
   | "test_email_sent"
+  | "comments_resolved"
   | "email_opened"
   | "docx_exported"
   | "docx_markup_sent_anyway";
@@ -97,6 +98,8 @@ export function describeActivity(a: {
       return `Reminder sent to ${target}`;
     case "email_failed":
       return `Email to ${target} failed`;
+    case "comments_resolved":
+      return `${who} resolved comments in ${v}: ${m.addressed ?? 0} done, ${m.deferred ?? 0} deferred, ${m.declined ?? 0} won't do`;
     case "test_email_sent":
       return `${who} sent a test email of ${v} to ${typeof m.to === "string" ? m.to : "themselves"}`;
     case "email_opened":

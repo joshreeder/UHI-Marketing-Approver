@@ -5,6 +5,7 @@ import { createCopyVersion, createVersion } from "@/app/(app)/items/actions";
 import { createProjectItem, ensureProjectItem } from "@/app/(app)/projects/actions";
 import { canonicalMime } from "@/lib/mime";
 import { makeThumbnail } from "@/lib/client/thumbnail";
+import type { CommentResolution } from "@/lib/resolutions";
 
 export const ACCEPT =
   "application/pdf,image/jpeg,image/png,image/gif,image/webp,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation";
@@ -27,8 +28,8 @@ export type SaveTarget =
   | { kind: "new-item"; projectId: string; title?: string }; // another piece
 
 export type SavePayload =
-  | { mode: "file"; file: File; note: string }
-  | { mode: "copy"; body: string; subject: string; fromName: string; note: string };
+  | { mode: "file"; file: File; note: string; resolutions?: CommentResolution[] }
+  | { mode: "copy"; body: string; subject: string; fromName: string; note: string; resolutions?: CommentResolution[] };
 
 export type SaveResult = { ok: true; itemId: string; versionId?: string; message?: string } | { ok: false; error: string };
 
@@ -67,9 +68,9 @@ export async function saveVersion(target: SaveTarget, payload: SavePayload, next
         previewUrl = null; // thumbnails are best-effort
       }
     }
-    const r = await createVersion({ itemId, note: payload.note, fileUrl: blob.url, fileName: payload.file.name, mime, size: payload.file.size, previewUrl });
+    const r = await createVersion({ itemId, note: payload.note, fileUrl: blob.url, fileName: payload.file.name, mime, size: payload.file.size, previewUrl, resolutions: payload.resolutions });
     return r.ok ? { ok: true, itemId, versionId: r.versionId, message: r.message } : r;
   }
-  const r = await createCopyVersion({ itemId, note: payload.note, subject: payload.subject, fromName: payload.fromName, body: payload.body });
+  const r = await createCopyVersion({ itemId, note: payload.note, subject: payload.subject, fromName: payload.fromName, body: payload.body, resolutions: payload.resolutions });
   return r.ok ? { ok: true, itemId, versionId: r.versionId, message: r.message } : r;
 }
