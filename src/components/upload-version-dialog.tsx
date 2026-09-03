@@ -20,7 +20,7 @@ export function UploadVersionDialog({
   nextNumber: number;
   willResend: boolean;
   defaultMode?: Mode;
-  initialCopy?: { subject: string; fromName: string; body: string };
+  initialCopy?: { subject: string; fromName: string; body: string; layout?: "email" | "letter" };
   openComments?: OpenComment[];
   trigger?: React.ReactElement;
 }) {

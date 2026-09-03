@@ -15,6 +15,14 @@ export const appSettingsSchema = z.object({
     dueDateEnabled: z.boolean().default(true),
   }),
   autoCompleteOnApproval: z.boolean().default(false),
+  /** Text printed on the on-screen letterhead page (the Word download uses the real letterhead file). */
+  letter: z
+    .object({
+      companyName: z.string().max(120).default("United Heritage Insurance"),
+      addressLine: z.string().max(200).default(""),
+      contactLine: z.string().max(200).default(""),
+    })
+    .default({ companyName: "United Heritage Insurance", addressLine: "", contactLine: "" }),
   /** Word letterhead (.docx) used when copy versions are downloaded as Word documents. */
   letterhead: z
     .object({

@@ -51,6 +51,12 @@ export async function saveDefaults(_prev: SettingsState, formData: FormData): Pr
       dueDateEnabled: formData.get("dueDateEnabled") === "on",
     },
     autoCompleteOnApproval: formData.get("autoCompleteOnApproval") === "on",
+    letter: {
+      companyName: String(formData.get("letterCompanyName") ?? "").trim() || "United Heritage Insurance",
+      addressLine: String(formData.get("letterAddressLine") ?? "").trim(),
+      contactLine: String(formData.get("letterContactLine") ?? "").trim(),
+    },
+    letterhead: current.letterhead,
   });
   if (!parsed.success) return { error: "Check the numbers: review window 1–60, rounds 1–20, revision 0–60." };
   await saveSettings({ ...current, ...parsed.data });

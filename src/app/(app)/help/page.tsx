@@ -174,6 +174,11 @@ export default async function HelpPage() {
               and pinned notes show as numbered markers on the preview itself; click a marker to read it.
             </p>
             <p>
+              When you drop the next version, the open comments appear as a <b>checklist</b>: mark each <b>Done</b>, <b>Next version</b> or <b>Won’t do</b>, and add a note for
+              anything else you changed. Approvers get that list in the new-version email, the item page shows “Changes in this version”, and old comments carry a badge such as
+              “Done in v3”. Anything marked Next version stays on the list for the following version.
+            </p>
+            <p>
               Fix the piece and add a <b>New version</b>. The old round is closed as <b>Superseded</b>, all its approvers are copied to the new round and emailed “New version ready”,
               and the clock restarts. Under the old version, each comment has <b>Mark addressed</b> so you can tick them off. Old versions stay in the history forever.
             </p>

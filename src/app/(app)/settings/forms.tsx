@@ -63,6 +63,15 @@ export function DefaultsForm({ settings }: { settings: AppSettings }) {
           Mark projects done automatically when every item is approved
         </label>
       </div>
+      <div className="space-y-2 rounded-lg bg-canvas/60 p-3">
+        <p className="text-sm font-medium text-ink">Letter page</p>
+        <p className="text-xs text-slate">Printed on the on-screen letterhead when copy is written as a letter. The Word download uses the real letterhead file below.</p>
+        <div className="grid gap-2 sm:grid-cols-3">
+          <Input name="letterCompanyName" defaultValue={settings.letter.companyName} placeholder="Company name" />
+          <Input name="letterAddressLine" defaultValue={settings.letter.addressLine} placeholder="Street, City, State ZIP" />
+          <Input name="letterContactLine" defaultValue={settings.letter.contactLine} placeholder="Phone · website" />
+        </div>
+      </div>
       <FormMessage message={state.error} />
       <FormMessage message={state.success} tone="success" />
       <Button type="submit" disabled={pending}>

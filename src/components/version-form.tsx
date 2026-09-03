@@ -35,7 +35,7 @@ export type VersionFormProps = {
   /** True when the previous version has a round: saving re-sends to its approvers. */
   willResend?: boolean;
   defaultMode?: Mode;
-  initialCopy?: { subject: string; fromName: string; body: string };
+  initialCopy?: { subject: string; fromName: string; body: string; layout?: "email" | "letter" };
   /** Bigger drop zone and copy box for the inline "get started" panel. */
   inline?: boolean;
   /** Approver comments still open on this piece; shown as a checklist to resolve with this version. */
@@ -57,6 +57,7 @@ export function VersionForm({ target, nextNumber, willResend = false, defaultMod
   const [fromName, setFromName] = useState(initialCopy?.fromName ?? "");
   const [body, setBody] = useState(initialCopy?.body ?? "");
   const [bodyText, setBodyText] = useState("");
+  const [layout, setLayout] = useState<"email" | "letter">(initialCopy?.layout ?? "email");
   const [docxReview, setDocxReview] = useState<DocxReview | null>(null);
   const [docxChecking, setDocxChecking] = useState(false);
   const [markupAcknowledged, setMarkupAcknowledged] = useState(false);
@@ -88,6 +89,9 @@ export function VersionForm({ target, nextNumber, willResend = false, defaultMod
     }
   }
 
+  // Every open comment gets an answer; anything untouched is carried forward as "Next version".
+  const fullResolutions: CommentResolution[] = openComments.map((c) => resolutions.find((r) => r.commentId === c.id) ?? { commentId: c.id, resolution: "deferred" });
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -97,7 +101,7 @@ export function VersionForm({ target, nextNumber, willResend = false, defaultMod
       setBusy(mode === "file" ? "uploading" : "saving");
       const result = await saveVersion(
         target,
-        mode === "file" ? { mode: "file", file: file!, note, resolutions } : { mode: "copy", body, subject, fromName, note, resolutions },
+        mode === "file" ? { mode: "file", file: file!, note, resolutions: fullResolutions } : { mode: "copy", body, subject, fromName, layout, note, resolutions: fullResolutions },
         nextNumber,
         (pct) => {
           setProgress(pct);
@@ -209,13 +213,28 @@ export function VersionForm({ target, nextNumber, willResend = false, defaultMod
 
       {mode === "copy" ? (
         <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span className="text-slate">Format</span>
+            {(["email", "letter"] as const).map((l) => (
+              <button
+                key={l}
+                type="button"
+                onClick={() => setLayout(l)}
+                aria-pressed={layout === l}
+                className={cn("rounded-full px-3 py-1 text-xs ring-1 ring-line", layout === l ? "bg-navy text-white ring-transparent" : "bg-white text-slate hover:text-ink")}
+              >
+                {l === "email" ? "Email" : "Letter or page (letterhead)"}
+              </button>
+            ))}
+            <span className="text-xs text-slate">{layout === "letter" ? "Previewed on the letterhead page; downloads as a Word document on the real letterhead." : "Previewed with a From / Subject header."}</span>
+          </div>
           <div className="grid gap-3 sm:grid-cols-[1fr_200px]">
             <div className="space-y-1.5">
-              <Label htmlFor="subject">Subject line</Label>
-              <Input id="subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Optional — for emails" />
+              <Label htmlFor="subject">{layout === "letter" ? "Document title" : "Subject line"}</Label>
+              <Input id="subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder={layout === "letter" ? "Optional — e.g. Rate change notice" : "Optional — for emails"} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="fromName">From name</Label>
+              <Label htmlFor="fromName">{layout === "letter" ? "Signed by" : "From name"}</Label>
               <Input id="fromName" value={fromName} onChange={(e) => setFromName(e.target.value)} placeholder="Optional" />
             </div>
           </div>

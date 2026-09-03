@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils";
  * Approver comments as a to-do list on the "new version" form. Each gets Done / Next version / Won't do.
  * Unanswered comments default to "Next version" so nothing silently disappears.
  */
-export function ResolutionChecklist({ comments, value, onChange }: { comments: OpenComment[]; value: CommentResolution[]; onChange: (v: CommentResolution[]) => void }) {
+export function ResolutionChecklist({ comments, value, onChange }: { comments: OpenComment[]; value: CommentResolution[]; onChange: (update: (prev: CommentResolution[]) => CommentResolution[]) => void }) {
   if (comments.length === 0) return null;
   const get = (id: string): Resolution => value.find((r) => r.commentId === id)?.resolution ?? "deferred";
-  const set = (id: string, resolution: Resolution) => onChange([...value.filter((r) => r.commentId !== id), { commentId: id, resolution }]);
+  const set = (id: string, resolution: Resolution) => onChange((prev) => [...prev.filter((r) => r.commentId !== id), { commentId: id, resolution }]);
   const done = comments.filter((c) => get(c.id) === "addressed").length;
 
   return (

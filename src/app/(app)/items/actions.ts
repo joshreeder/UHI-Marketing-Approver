@@ -27,6 +27,7 @@ async function loadItem(itemId: string) {
 type VersionValues = {
   note: string;
   resolutions?: CommentResolution[];
+  copyLayout?: "email" | "letter" | null;
   previewHtml?: string | null;
   docxReview?: DocxReview | null;
   previewUrl?: string | null;
@@ -65,6 +66,7 @@ async function insertVersion(session: Awaited<ReturnType<typeof requireTeam>>, i
       emailSubject: values.emailSubject ?? null,
       emailFromName: values.emailFromName ?? null,
       emailHtml: values.emailHtml ?? null,
+      copyLayout: values.copyLayout ?? null,
     })
     .returning();
   await logActivity({
@@ -166,6 +168,7 @@ const copySchema = z.object({
   note: z.string().trim().max(2000).optional().default(""),
   subject: z.string().trim().max(300).optional().default(""),
   fromName: z.string().trim().max(120).optional().default(""),
+  layout: z.enum(["email", "letter"]).optional().default("email"),
   /** HTML from the copy editor (plain text is accepted too and turned into paragraphs). */
   body: z.string().trim().min(1, "Write or paste the copy first.").max(400_000),
 });
@@ -184,6 +187,7 @@ export async function createCopyVersion(input: z.input<typeof copySchema>): Prom
     emailSubject: d.subject || null,
     emailFromName: d.fromName || null,
     emailHtml: html,
+    copyLayout: d.layout,
   });
 }
 

@@ -29,7 +29,7 @@ export type SaveTarget =
 
 export type SavePayload =
   | { mode: "file"; file: File; note: string; resolutions?: CommentResolution[] }
-  | { mode: "copy"; body: string; subject: string; fromName: string; note: string; resolutions?: CommentResolution[] };
+  | { mode: "copy"; body: string; subject: string; fromName: string; layout: "email" | "letter"; note: string; resolutions?: CommentResolution[] };
 
 export type SaveResult = { ok: true; itemId: string; versionId?: string; message?: string } | { ok: false; error: string };
 
@@ -71,6 +71,6 @@ export async function saveVersion(target: SaveTarget, payload: SavePayload, next
     const r = await createVersion({ itemId, note: payload.note, fileUrl: blob.url, fileName: payload.file.name, mime, size: payload.file.size, previewUrl, resolutions: payload.resolutions });
     return r.ok ? { ok: true, itemId, versionId: r.versionId, message: r.message } : r;
   }
-  const r = await createCopyVersion({ itemId, note: payload.note, subject: payload.subject, fromName: payload.fromName, body: payload.body, resolutions: payload.resolutions });
+  const r = await createCopyVersion({ itemId, note: payload.note, subject: payload.subject, fromName: payload.fromName, layout: payload.layout, body: payload.body, resolutions: payload.resolutions });
   return r.ok ? { ok: true, itemId, versionId: r.versionId, message: r.message } : r;
 }

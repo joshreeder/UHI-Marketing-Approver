@@ -71,6 +71,10 @@ Uploading the Word file itself is fine when the file is the deliverable and the 
 app deliberately does not do is watch a shared OneDrive document: a version here is frozen the moment it is saved, which is the only way "everyone approved
 this" can mean anything.
 
+Copy has two formats: **Email** (From / Subject header) and **Letter or page**, which previews on a letterhead page (logo,
+company line, footer from Settings) and downloads as Word on the real letterhead. Use it for letters, notices and one-pagers
+instead of Word.
+
 ## 3. Send for approval
 
 After the first version is saved, use **Send for approval** on the right: type emails and press Enter (past approvers are
@@ -84,6 +88,10 @@ anywhere on the preview to pin a numbered note to that spot. Request changes ask
 Works on a phone. The item page shows when each approver was emailed and (with tracking connected) when they opened it. You and the designer get an email for every decision, and a "Fully approved" email when the last approval lands.
 
 ## 5. Handle change requests
+
+When you drop the next version, open comments appear as a checklist: **Done**, **Next version** or **Won't do**, plus a note
+for anything else. Approvers get the list in the new-version email; the item page shows "Changes in this version"; old comments
+get badges like "Done in v3". "Next version" items stay on the list.
 
 One Request changes flips the round to **Changes requested**. Fix the piece and add a **New version**: the old round is closed as
 Superseded, its approvers are copied to the new round and emailed "New version ready". Comments under the old version get a

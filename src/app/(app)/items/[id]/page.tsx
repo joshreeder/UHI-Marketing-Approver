@@ -70,7 +70,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
             defaultMode={current && isCopyVersion(current) ? "copy" : "file"}
             initialCopy={
               current && isCopyVersion(current)
-                ? { subject: current.emailSubject ?? "", fromName: current.emailFromName ?? "", body: current.emailHtml ?? "" }
+                ? { subject: current.emailSubject ?? "", fromName: current.emailFromName ?? "", body: current.emailHtml ?? "", layout: (current.copyLayout as "email" | "letter" | null) ?? "email" }
                 : undefined
             }
             openComments={openCommentsFromVersions(versions)}

@@ -153,6 +153,8 @@ export const versions = pgTable(
     emailSubject: text("email_subject"),
     emailFromName: text("email_from_name"),
     emailHtml: text("email_html"),
+    /** How copy is presented: "email" (From/Subject header) or "letter" (letterhead page). */
+    copyLayout: text("copy_layout"),
     ...timestamps,
   },
   (t) => [uniqueIndex("versions_item_number_idx").on(t.itemId, t.number)],
