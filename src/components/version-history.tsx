@@ -4,6 +4,7 @@ import { MarkAddressedButton } from "@/components/mark-addressed-button";
 import { displayName, fmtBytes, fmtDate, fmtDateTime } from "@/lib/format";
 import type { VersionDetail } from "@/lib/queries";
 import { htmlToText, isCopyVersion, wordCount } from "@/lib/copy";
+import { describeDocxReview } from "@/lib/docx-review";
 
 export function VersionHistory({
   versions,
@@ -42,7 +43,19 @@ export function VersionHistory({
             <div className="hairline-t border-line space-y-4 px-4 py-4">
               <div className="text-xs text-slate">
                 Uploaded {fmtDateTime(v.createdAt)} by {displayName(v.uploader)}
-                {isCopyVersion(v) ? ` · Copy, ${wordCount(htmlToText(v.emailHtml ?? ""))} words${v.emailSubject ? ` · “${v.emailSubject}”` : ""}` : null}
+                {isCopyVersion(v) ? (
+                  <>
+                    {` · Copy, ${wordCount(htmlToText(v.emailHtml ?? ""))} words${v.emailSubject ? ` · “${v.emailSubject}”` : ""}`}
+                    {fileLinks ? (
+                      <>
+                        {" · "}
+                        <a href={`/api/export/${v.id}`} className="text-navy hover:underline">
+                          Download as Word
+                        </a>
+                      </>
+                    ) : null}
+                  </>
+                ) : null}
                 {v.fileName ? (
                   <>
                     {" · "}
@@ -54,6 +67,7 @@ export function VersionHistory({
                       v.fileName
                     )}
                     {v.size ? ` (${fmtBytes(v.size)})` : ""}
+                    {describeDocxReview(v.docxReview) ? <span className="text-[var(--status-changes)]"> · {describeDocxReview(v.docxReview)} in the file</span> : null}
                   </>
                 ) : null}
                 {round ? ` · Due ${fmtDateTime(round.dueAt)}` : ""}

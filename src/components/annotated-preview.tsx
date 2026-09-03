@@ -5,6 +5,7 @@ import { CopyPreview } from "./copy-preview";
 import { PinLayer } from "./pin-layer";
 import type { Pin } from "@/lib/pins";
 import { isCopyVersion } from "@/lib/copy";
+import { describeDocxReview } from "@/lib/docx-review";
 import type { Version } from "@/lib/db/schema";
 
 /**
@@ -76,7 +77,8 @@ export function AnnotatedPreview({
           {layer(null)}
         </div>
         <p className="mt-2 text-center text-xs text-slate">
-          Converted from {version.fileName}. Formatting is approximate;{" "}
+          Converted from {version.fileName}. Formatting is approximate
+          {describeDocxReview(version.docxReview) ? `, and the file's ${describeDocxReview(version.docxReview)} are shown as accepted` : ""};{" "}
           <a href={`${src}?download=1`} className="text-navy underline">
             download the original
           </a>

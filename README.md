@@ -1,8 +1,9 @@
 # Approval Hub
 
 Internal proof-and-approval tracker for United Heritage Insurance marketing. Designers upload
-versions of a piece (PDF or image, or pasted email copy), send them to approvers by email, and track approvals and
-change requests per version. Approvers never create accounts — the link in their email signs
+versions of a piece (PDF, image or Word file, or copy written in the built-in editor), send them to approvers by email, and track approvals and
+change requests per version. Copy versions show a word-level diff between versions and can be downloaded as a Word document on the company letterhead;
+Word uploads are checked for unresolved tracked changes and comments. Approvers never create accounts — the link in their email signs
 them in.
 
 The full plan is in [docs/plan.md](docs/plan.md); the build brief is [docs/kickoff.md](docs/kickoff.md).
@@ -11,7 +12,8 @@ How to use the app: [docs/USER-GUIDE.md](docs/USER-GUIDE.md) (also the **Help** 
 ## Stack
 
 Next.js 15 (App Router, TypeScript strict) · Tailwind v4 + shadcn/ui · Drizzle ORM on Postgres
-(Neon in production) · Vercel Blob (private) · Resend + React Email · Vercel Cron · PDF.js.
+(Neon in production) · Vercel Blob (private) · Resend + React Email · Vercel Cron · PDF.js · TipTap (copy editor) ·
+JSZip + htmlparser2 (Word inspection and export) · sanitize-html · jsdiff.
 
 ## Local development
 
@@ -38,7 +40,7 @@ First sign-in: if no owner exists yet, the first person to request a sign-in lin
 
 ## Scripts
 
-`pnpm dev` · `pnpm build` · `pnpm test` (schedule math) · `pnpm typecheck` · `pnpm lint` ·
+`pnpm dev` · `pnpm build` · `pnpm test` (schedule math, Word inspection/export, copy helpers) · `pnpm typecheck` · `pnpm lint` ·
 `pnpm db:generate` (new migration from schema changes) · `pnpm db:migrate` · `pnpm db:seed` · `pnpm db:studio`
 
 ## How it fits together
@@ -48,6 +50,10 @@ First sign-in: if no owner exists yet, the first person to request a sign-in lin
 - `src/lib/auth/` — hashed single-use team magic links; reusable scoped approver tokens; 30-day sessions.
 - `src/lib/rounds.ts` — start a round, supersede with a new version, reminders/nudges, record decisions.
 - `src/lib/email/` — React Email templates and the Resend sender (log fallback in dev).
+- `src/lib/copy.ts`, `copy-server.ts`, `copy-diff.ts` — copy versions: HTML ↔ text, allow-list sanitiser for editor output, word-level diff.
+- `src/lib/docx-review.ts` — finds tracked changes and comments inside a .docx (runs in the browser before upload and on the server on save).
+- `src/lib/docx.ts` — Word preview (mammoth) plus the inspection above, stored on `versions.docx_review`.
+- `src/lib/docx-export.ts` — builds a .docx from copy HTML, optionally inside the letterhead template from Settings (`/api/export/[versionId]`).
 - `src/app/(app)/` — team screens: dashboard, projects, items, settings.
 - `src/app/review/` — approver entry (`/review/[token]`) and the reviewer-first page (`/review/item/[itemId]`).
 - `src/app/api/` — Blob upload tokens, private file streaming, daily reminder cron.

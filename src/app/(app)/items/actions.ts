@@ -8,8 +8,10 @@ import { comments, items, versions } from "@/lib/db/schema";
 import { requireTeam } from "@/lib/auth/session";
 import { logActivity } from "@/lib/activity";
 import { DOCX_MIME, isAllowedMime, MAX_UPLOAD_BYTES } from "@/lib/blob";
-import { docxToPreviewHtml } from "@/lib/docx";
-import { textToHtml } from "@/lib/copy";
+import { processDocxUpload } from "@/lib/docx";
+import { isCopyEmpty, textToHtml } from "@/lib/copy";
+import { sanitizeCopyHtml } from "@/lib/copy-server";
+import { describeDocxReview, unresolvedCount, type DocxReview } from "@/lib/docx-review";
 import { refreshProjectStatus } from "@/lib/queries";
 import { sendReminder, startRound, supersedeWithNewVersion } from "@/lib/rounds";
 
@@ -24,6 +26,7 @@ async function loadItem(itemId: string) {
 type VersionValues = {
   note: string;
   previewHtml?: string | null;
+  docxReview?: DocxReview | null;
   fileUrl?: string | null;
   fileName?: string | null;
   mime?: string | null;
@@ -54,6 +57,7 @@ async function insertVersion(session: Awaited<ReturnType<typeof requireTeam>>, i
       mime: values.mime ?? null,
       size: values.size ?? null,
       previewHtml: values.previewHtml ?? null,
+      docxReview: values.docxReview ?? null,
       emailSubject: values.emailSubject ?? null,
       emailFromName: values.emailFromName ?? null,
       emailHtml: values.emailHtml ?? null,
@@ -65,7 +69,13 @@ async function insertVersion(session: Awaited<ReturnType<typeof requireTeam>>, i
     versionId: version.id,
     actorId: session.user.id,
     type: "version_uploaded",
-    meta: { versionNumber: number, note: values.note || null, fileName: values.fileName ?? null, kind: values.emailHtml ? "copy" : "file" },
+    meta: {
+      versionNumber: number,
+      note: values.note || null,
+      fileName: values.fileName ?? null,
+      kind: values.emailHtml ? "copy" : "file",
+      ...(values.docxReview ? { docxMarkup: describeDocxReview(values.docxReview) } : {}),
+    },
   });
 
   let message = `v${number} ${values.emailHtml ? "saved" : "uploaded"}.`;
@@ -101,8 +111,11 @@ export async function createVersion(input: z.input<typeof versionSchema>): Promi
   if (!parsed.success) return { ok: false, error: "Upload details were incomplete. Try again." };
   const d = parsed.data;
   if (!isAllowedMime(d.mime)) return { ok: false, error: "Only PDF, Word, PowerPoint, JPG, PNG, GIF and WebP files are supported." };
-  const previewHtml = d.mime === DOCX_MIME ? await docxToPreviewHtml(d.fileUrl) : null;
-  return insertVersion(session, d.itemId, { ...d, previewHtml });
+  const docx = d.mime === DOCX_MIME ? await processDocxUpload(d.fileUrl) : null;
+  const result = await insertVersion(session, d.itemId, { ...d, previewHtml: docx?.previewHtml ?? null, docxReview: docx?.docxReview ?? null });
+  const markup = describeDocxReview(docx?.docxReview);
+  if (markup && result.ok) return { ...result, message: `${result.message} Heads up: the file still has ${markup}.` };
+  return result;
 }
 
 const copySchema = z.object({
@@ -110,20 +123,23 @@ const copySchema = z.object({
   note: z.string().trim().max(2000).optional().default(""),
   subject: z.string().trim().max(300).optional().default(""),
   fromName: z.string().trim().max(120).optional().default(""),
-  body: z.string().trim().min(1, "Paste the copy first.").max(100_000),
+  /** HTML from the copy editor (plain text is accepted too and turned into paragraphs). */
+  body: z.string().trim().min(1, "Write or paste the copy first.").max(400_000),
 });
 
-/** "Paste copy" mode: email or any text that needs sign-off. Stored as simple HTML. */
+/** "Write copy" mode: letters, emails or any text that needs sign-off. Stored as sanitised HTML. */
 export async function createCopyVersion(input: z.input<typeof copySchema>): Promise<ActionResult & { versionId?: string }> {
   const session = await requireTeam();
   const parsed = copySchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Check the copy and try again." };
   const d = parsed.data;
+  const html = sanitizeCopyHtml(/<[a-z][\s\S]*>/i.test(d.body) ? d.body : textToHtml(d.body));
+  if (isCopyEmpty(html)) return { ok: false, error: "Write or paste the copy first." };
   return insertVersion(session, d.itemId, {
     note: d.note,
     emailSubject: d.subject || null,
     emailFromName: d.fromName || null,
-    emailHtml: textToHtml(d.body),
+    emailHtml: html,
   });
 }
 
@@ -132,6 +148,8 @@ const sendSchema = z.object({
   emails: z.string().trim().min(1, "Add at least one approver email."),
   reviewWindowDays: z.preprocess((v) => Number(v), z.number().int().min(1).max(60)),
   note: z.string().trim().max(2000).optional().default(""),
+  /** Required when the version is a Word file with unresolved tracked changes or comments. */
+  acknowledgeMarkup: z.enum(["on"]).optional(),
 });
 
 export type SendState = { error?: string; success?: string };
@@ -152,8 +170,16 @@ export async function sendForApproval(_prev: SendState, formData: FormData): Pro
   if (!version) return { error: "Version not found." };
   const item = await loadItem(version.itemId);
 
+  const markup = describeDocxReview(version.docxReview);
+  if (unresolvedCount(version.docxReview) > 0 && d.acknowledgeMarkup !== "on") {
+    return { error: `This Word file still has ${markup}. Resolve them in Word and upload the clean file, or tick “Send anyway”.` };
+  }
+
   try {
     const result = await startRound({ versionId: version.id, approverEmails: emails, reviewWindowDays: d.reviewWindowDays, note: d.note || null, actor: session.user });
+    if (markup) {
+      await logActivity({ projectId: item.projectId, itemId: item.id, versionId: version.id, actorId: session.user.id, type: "docx_markup_sent_anyway", meta: { versionNumber: version.number, summary: markup } });
+    }
     if (item.reviewWindowDays !== d.reviewWindowDays) {
       await db.update(items).set({ reviewWindowDays: d.reviewWindowDays }).where(eq(items.id, item.id));
     }

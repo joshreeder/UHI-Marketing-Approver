@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,12 +12,17 @@ export function SendForApprovalForm({
   versionId,
   defaultWindow,
   pastApprovers,
+  markupWarning,
 }: {
   versionId: string;
   defaultWindow: number;
   pastApprovers: string[];
+  /** e.g. "3 tracked changes and 1 open comment" — when set, sending requires an explicit acknowledgement. */
+  markupWarning?: string | null;
 }) {
   const [state, action, pending] = useActionState<SendState, FormData>(sendForApproval, {});
+  const [acknowledged, setAcknowledged] = useState(false);
+  const blocked = !!markupWarning && !acknowledged;
   return (
     <form action={action} className="space-y-3">
       <input type="hidden" name="versionId" value={versionId} />
@@ -39,9 +44,18 @@ export function SendForApprovalForm({
           <Input id="sendNote" name="note" placeholder="Optional — included in the email" />
         </div>
       </div>
+      {markupWarning ? (
+        <label className="flex items-start gap-2 rounded-lg bg-[var(--status-changes-bg)] px-3 py-2 text-xs text-ink">
+          <input type="checkbox" name="acknowledgeMarkup" checked={acknowledged} onChange={(e) => setAcknowledged(e.target.checked)} className="mt-0.5 size-4 accent-[var(--uh-navy)]" />
+          <span>
+            <span className="font-medium text-[var(--status-changes)]">Send anyway.</span> This Word file still has {markupWarning}. Approvers will see the text with every change accepted and no
+            comments. Better: resolve them in Word and upload the clean file first.
+          </span>
+        </label>
+      ) : null}
       <FormMessage message={state.error} />
       <FormMessage message={state.success} tone="success" />
-      <Button type="submit" disabled={pending} className="w-full">
+      <Button type="submit" disabled={pending || blocked} className="w-full">
         {pending ? "Sending…" : "Send for approval"}
       </Button>
     </form>

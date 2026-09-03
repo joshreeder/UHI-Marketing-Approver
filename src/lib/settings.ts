@@ -15,7 +15,19 @@ export const appSettingsSchema = z.object({
     dueDateEnabled: z.boolean().default(true),
   }),
   autoCompleteOnApproval: z.boolean().default(false),
+  /** Word letterhead (.docx) used when copy versions are downloaded as Word documents. */
+  letterhead: z
+    .object({
+      url: z.string().url(),
+      fileName: z.string().min(1).max(300),
+      size: z.number().int().nonnegative(),
+      uploadedAt: z.string(),
+    })
+    .nullable()
+    .default(null),
 });
+
+export type Letterhead = NonNullable<AppSettings["letterhead"]>;
 
 export type AppSettings = z.infer<typeof appSettingsSchema>;
 

@@ -10,14 +10,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { FormMessage } from "@/components/form-message";
+import { CopyEditor } from "@/components/copy-editor";
 import { createCopyVersion, createVersion } from "@/app/(app)/items/actions";
 import { fmtBytes } from "@/lib/format";
 import { wordCount } from "@/lib/copy";
+import { describeDocxReview, reviewDocx, unresolvedCount, type DocxReview } from "@/lib/docx-review";
 import { canonicalMime } from "@/lib/mime";
 import { cn } from "@/lib/utils";
 
 const ACCEPT = "application/pdf,image/jpeg,image/png,image/gif,image/webp,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation";
 const MAX = 500 * 1024 * 1024;
+const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
 type Mode = "file" | "copy";
 
@@ -41,7 +44,7 @@ export function UploadVersionDialog({
   /** True when the previous version has a round: uploading re-sends to its approvers. */
   willResend: boolean;
   defaultMode?: Mode;
-  /** Pre-fills the copy tab (e.g. with the previous version's text so the designer edits, not retypes). */
+  /** Pre-fills the copy tab with the previous version (HTML body) so the designer edits, not retypes. */
   initialCopy?: { subject: string; fromName: string; body: string };
   trigger?: React.ReactElement;
 }) {
@@ -53,13 +56,17 @@ export function UploadVersionDialog({
   const [subject, setSubject] = useState(initialCopy?.subject ?? "");
   const [fromName, setFromName] = useState(initialCopy?.fromName ?? "");
   const [body, setBody] = useState(initialCopy?.body ?? "");
+  const [bodyText, setBodyText] = useState("");
+  const [docxReview, setDocxReview] = useState<DocxReview | null>(null);
+  const [docxChecking, setDocxChecking] = useState(false);
+  const [markupAcknowledged, setMarkupAcknowledged] = useState(false);
   const [busy, setBusy] = useState<"idle" | "uploading" | "saving">("idle");
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  function pick(f: File | null | undefined) {
+  async function pick(f: File | null | undefined) {
     setError(null);
     if (!f) return;
     const mime = canonicalMime(f.name, f.type);
@@ -68,6 +75,19 @@ export function UploadVersionDialog({
     }
     if (f.size > MAX) return setError(`Files must be 500 MB or smaller (this one is ${fmtBytes(f.size)}).`);
     setFile(f);
+    setDocxReview(null);
+    setMarkupAcknowledged(false);
+    if (mime === DOCX) {
+      // Look inside the Word file before it is uploaded so tracked changes are caught early.
+      setDocxChecking(true);
+      try {
+        setDocxReview(await reviewDocx(await f.arrayBuffer()));
+      } catch {
+        setDocxReview(null);
+      } finally {
+        setDocxChecking(false);
+      }
+    }
   }
 
   function reset() {
@@ -75,6 +95,8 @@ export function UploadVersionDialog({
     setNote("");
     setError(null);
     setProgress(0);
+    setDocxReview(null);
+    setMarkupAcknowledged(false);
   }
 
   async function submit(e: React.FormEvent) {
@@ -97,7 +119,7 @@ export function UploadVersionDialog({
         setBusy("saving");
         result = await createVersion({ itemId, note, fileUrl: blob.url, fileName: file.name, mime, size: file.size });
       } else {
-        if (!body.trim()) return setError("Paste the copy first.");
+        if (!bodyText.trim()) return setError("Write or paste the copy first.");
         setBusy("saving");
         result = await createCopyVersion({ itemId, note, subject, fromName, body });
       }
@@ -115,7 +137,9 @@ export function UploadVersionDialog({
   }
 
   const label = nextNumber === 1 ? "Add v1" : `New version (v${nextNumber})`;
-  const canSubmit = mode === "file" ? !!file : body.trim().length > 0;
+  const markup = describeDocxReview(docxReview);
+  const markupBlocks = unresolvedCount(docxReview) > 0 && !markupAcknowledged;
+  const canSubmit = mode === "file" ? !!file && !docxChecking && !markupBlocks : bodyText.trim().length > 0;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -147,7 +171,7 @@ export function UploadVersionDialog({
                   mode === m ? "bg-white font-medium text-ink shadow-sm ring-1 ring-line" : "text-slate hover:text-ink",
                 )}
               >
-                {m === "file" ? "Upload a file" : "Paste copy"}
+                {m === "file" ? "Upload a file" : "Write copy"}
               </button>
             ))}
           </div>
@@ -186,7 +210,34 @@ export function UploadVersionDialog({
                 </>
               )}
             </div>
-          ) : (
+          ) : null}
+
+          {mode === "file" && file && canonicalMime(file.name, file.type) === DOCX ? (
+            docxChecking ? (
+              <p className="text-xs text-slate">Checking the Word file for tracked changes and comments…</p>
+            ) : markup ? (
+              <div className="space-y-2 rounded-xl border border-[var(--status-changes)]/30 bg-[var(--status-changes-bg)] p-3 text-xs">
+                <p className="text-sm font-medium text-[var(--status-changes)]">This Word file still has {markup}.</p>
+                <p className="text-ink/80">
+                  Approvers see the preview with every change accepted and no comments, so they would be signing off on text nobody has settled on. Best: accept or reject the changes and
+                  resolve the comments in Word, save, and upload that file instead.
+                  {docxReview?.authors.length ? ` Edits by ${docxReview.authors.join(", ")}.` : ""}
+                </p>
+                <label className="flex items-start gap-2 text-ink">
+                  <input type="checkbox" checked={markupAcknowledged} onChange={(e) => setMarkupAcknowledged(e.target.checked)} className="mt-0.5 size-4 accent-[var(--uh-navy)]" />
+                  <span>
+                    {willResend
+                      ? "Upload anyway and send it to the previous approvers now. The markup stays flagged on the item page."
+                      : "Upload anyway. The markup will be flagged on the item page and again before sending for approval."}
+                  </span>
+                </label>
+              </div>
+            ) : docxReview ? (
+              <p className="text-xs text-[var(--status-approved)]">Clean Word file: no tracked changes or open comments.</p>
+            ) : null
+          ) : null}
+
+          {mode === "copy" ? (
             <div className="space-y-3">
               <div className="grid gap-3 sm:grid-cols-[1fr_180px]">
                 <div className="space-y-1.5">
@@ -200,20 +251,23 @@ export function UploadVersionDialog({
               </div>
               <div className="space-y-1.5">
                 <div className="flex items-baseline justify-between">
-                  <Label htmlFor="body">Copy</Label>
-                  <span className="text-xs text-slate">{wordCount(body)} words</span>
+                  <Label>Copy</Label>
+                  <span className="text-xs text-slate">{wordCount(bodyText)} words</span>
                 </div>
-                <Textarea
-                  id="body"
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                  rows={12}
-                  className="font-mono text-[13px] leading-relaxed"
-                  placeholder={"Paste the email or copy here.\n\nBlank lines start a new paragraph. Approvers see it formatted, and can comment on it just like a file."}
+                <CopyEditor
+                  initialHtml={initialCopy?.body ?? ""}
+                  onChange={(html, text) => {
+                    setBody(html);
+                    setBodyText(text);
+                  }}
                 />
+                <p className="text-xs text-slate">
+                  Write here or paste from Word, an email or a web page; headings, bold, lists and links come along. Approvers see it formatted like a page, can comment on it,
+                  and it can be downloaded as a Word document at any time.
+                </p>
               </div>
             </div>
-          )}
+          ) : null}
 
           <div className="space-y-1.5">
             <Label htmlFor="note">Version note</Label>

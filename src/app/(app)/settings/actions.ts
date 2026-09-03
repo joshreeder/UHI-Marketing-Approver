@@ -58,3 +58,29 @@ export async function saveDefaults(_prev: SettingsState, formData: FormData): Pr
   revalidatePath("/projects/new");
   return { success: "Settings saved." };
 }
+
+const letterheadSchema = z.object({
+  url: z.string().url(),
+  fileName: z.string().trim().min(1).max(300),
+  size: z.number().int().nonnegative(),
+});
+
+/** Called after the browser has put the .docx letterhead in Blob storage. */
+export async function saveLetterhead(input: z.input<typeof letterheadSchema>): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireOwner();
+  const parsed = letterheadSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Upload details were incomplete. Try again." };
+  if (!parsed.data.fileName.toLowerCase().endsWith(".docx")) return { ok: false, error: "The letterhead must be a Word file (.docx)." };
+  const current = await getSettings();
+  await saveSettings({ ...current, letterhead: { ...parsed.data, uploadedAt: new Date().toISOString() } });
+  revalidatePath("/settings");
+  return { ok: true };
+}
+
+export async function removeLetterhead(): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireOwner();
+  const current = await getSettings();
+  await saveSettings({ ...current, letterhead: null });
+  revalidatePath("/settings");
+  return { ok: true };
+}

@@ -1,4 +1,5 @@
 import { relations, sql } from "drizzle-orm";
+import type { DocxReview } from "@/lib/docx-review";
 import {
   date,
   integer,
@@ -146,6 +147,8 @@ export const versions = pgTable(
     previewUrl: text("preview_url"),
     /** Generated HTML preview for formats the browser cannot show natively (DOCX via mammoth). */
     previewHtml: text("preview_html"),
+    /** For Word uploads: tracked changes and comments found in the file at upload time. */
+    docxReview: jsonb("docx_review").$type<DocxReview>(),
     // email versions
     emailSubject: text("email_subject"),
     emailFromName: text("email_from_name"),

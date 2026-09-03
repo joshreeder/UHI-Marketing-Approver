@@ -5,6 +5,7 @@ import { listTeamMembers } from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
 import { env } from "@/lib/env";
 import { DefaultsForm, TeamForm } from "./forms";
+import { LetterheadForm } from "@/components/letterhead-form";
 import { removeTeamMember } from "./actions";
 import { Button } from "@/components/ui/button";
 import { displayName } from "@/lib/format";
@@ -57,6 +58,15 @@ export default async function SettingsPage() {
             <h2 className="text-sm font-medium text-ink">Defaults and reminders</h2>
             <p className="mb-4 text-xs text-slate">New projects start with these. Reminders go out daily at 8 am Mountain.</p>
             <DefaultsForm settings={settings} />
+          </section>
+
+          <section className="rounded-xl border border-line bg-white p-5">
+            <h2 className="text-sm font-medium text-ink">Word letterhead</h2>
+            <p className="mb-4 text-xs text-slate">
+              Copy versions (letters, announcements, email text) can be downloaded as a Word document. With a letterhead uploaded here, the download uses its header, footer and styles.
+              {!blobConfigured ? " File storage must be configured first." : ""}
+            </p>
+            <LetterheadForm letterhead={settings.letterhead} />
           </section>
 
           <section className="rounded-xl border border-line bg-white p-5 text-sm">

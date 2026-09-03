@@ -37,6 +37,10 @@ Every push to `main` deploys production; PRs get preview deployments.
 Schema changes: edit `src/lib/db/schema.ts`, `pnpm db:generate`, commit the new file in `drizzle/`, then
 `pnpm dlx vercel@latest env pull .env.local && set -a && source .env.local && set +a && pnpm db:migrate`.
 
+**Pending after the Word/copy release:** `drizzle/0002_word_copy.sql` adds `versions.docx_review` (jsonb). Run `pnpm db:migrate` against
+production once that deploy is out; until then Word uploads fail to save. After it, an owner can upload the Word letterhead under
+Settings → Word letterhead (stored in the same private Blob store under `templates/`).
+
 ## Local development without Neon
 
 Any Postgres works locally (the app switches to node-postgres for non-Neon URLs). For example with Postgres

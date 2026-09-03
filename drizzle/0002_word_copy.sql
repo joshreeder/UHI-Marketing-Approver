@@ -1,0 +1,1 @@
+ALTER TABLE "versions" ADD COLUMN "docx_review" jsonb;

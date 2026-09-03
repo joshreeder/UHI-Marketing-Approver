@@ -1,0 +1,3 @@
+/** Typography for copy versions, shared by the editor, the preview and emails' HTML wrapper. */
+export const copyBodyClass =
+  "text-[15px] leading-7 text-ink [&_p]:mb-4 [&_p:last-child]:mb-0 [&_h1]:mb-3 [&_h1]:text-2xl [&_h1]:font-medium [&_h1]:leading-tight [&_h2]:mb-2 [&_h2]:text-xl [&_h2]:font-medium [&_h2]:leading-snug [&_h3]:mb-2 [&_h3]:text-lg [&_h3]:font-medium [&_ul]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:mb-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-1 [&_li_p]:mb-1 [&_blockquote]:mb-4 [&_blockquote]:border-l-2 [&_blockquote]:border-line [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-slate [&_a]:text-navy [&_a]:underline [&_strong]:font-semibold [&_b]:font-semibold [&_u]:underline [&_s]:line-through";

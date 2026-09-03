@@ -8,9 +8,14 @@ import { ReviewActions } from "@/components/review-actions";
 import { AddCommentForm } from "@/components/add-comment-form";
 import { VersionHistory } from "@/components/version-history";
 import { RoundPill } from "@/components/status-pill";
+import { CopyDiff } from "@/components/copy-diff";
+import { DocxReviewNotice } from "@/components/docx-review-notice";
+import { DownloadWordMenu } from "@/components/download-word-menu";
 import { canAccessItem, getSession } from "@/lib/auth/session";
 import { getItemDetail } from "@/lib/queries";
+import { getSettings } from "@/lib/settings";
 import { displayName, fmtDateTime, fmtDueLong } from "@/lib/format";
+import { isCopyVersion } from "@/lib/copy";
 
 export const metadata: Metadata = { title: "Review" };
 export const dynamic = "force-dynamic";
@@ -22,9 +27,11 @@ export default async function ReviewItemPage({ params }: { params: Promise<{ ite
   if (!session) redirect(`/review/expired?item=${itemId}`);
   if (!canAccessItem(session, itemId)) redirect(`/review/expired?item=${itemId}`);
 
-  const detail = await getItemDetail(itemId);
+  const [detail, settings] = await Promise.all([getItemDetail(itemId), getSettings()]);
   if (!detail) redirect("/review/expired");
   const { item, project, versions, current } = detail;
+  const previous = versions[1] ?? null;
+  const showDiff = !!current && !!previous && isCopyVersion(current) && isCopyVersion(previous);
   const round = current?.round ?? null;
   const mine = round?.approvals.find((a) => a.userId === session.user.id) ?? null;
   const canDecide = !!mine && mine.status === "waiting" && round && round.status !== "superseded" && round.status !== "approved";
@@ -62,6 +69,11 @@ export default async function ReviewItemPage({ params }: { params: Promise<{ ite
                 ) : null}
               </div>
               {current.note ? <p className="mt-3 rounded-lg bg-canvas px-3 py-2 text-ink">{current.note}</p> : null}
+              {isCopyVersion(current) ? (
+                <div className="mt-3 flex justify-end">
+                  <DownloadWordMenu versionId={current.id} hasLetterhead={!!settings.letterhead} size="sm" variant="outline" />
+                </div>
+              ) : null}
               {mine && mine.status !== "waiting" ? (
                 <p className={`mt-3 rounded-lg px-3 py-2 ${mine.status === "approved" ? "bg-[var(--status-approved-bg)] text-[var(--status-approved)]" : "bg-[var(--status-changes-bg)] text-[var(--status-changes)]"}`}>
                   You {mine.status === "approved" ? "approved" : "requested changes on"} this version {fmtDateTime(mine.decidedAt)}. Thank you.
@@ -72,7 +84,11 @@ export default async function ReviewItemPage({ params }: { params: Promise<{ ite
               ) : null}
             </section>
 
+            {current.docxReview ? <DocxReviewNotice review={current.docxReview} fileName={current.fileName} downloadHref={`/api/files/${current.id}?download=1`} audience="approver" /> : null}
+
             <AnnotatedPreview version={current} pins={commentsToPins(current.comments)} canPin={!!mine && !!round && (round.status === "pending" || round.status === "changes_requested")} approvalId={mine?.id ?? null} />
+
+            {showDiff && previous ? <CopyDiff previous={previous} current={current} defaultOpen /> : null}
 
             {round ? (
               <section className="rounded-xl border border-line bg-white p-4 sm:p-5">

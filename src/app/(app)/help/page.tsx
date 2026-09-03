@@ -10,6 +10,7 @@ const sections = [
   { id: "roles", title: "Who does what" },
   { id: "project", title: "1. Create a project" },
   { id: "version", title: "2. Add a version: file or copy" },
+  { id: "word", title: "Letters and Word documents" },
   { id: "send", title: "3. Send for approval" },
   { id: "approver", title: "4. What approvers see" },
   { id: "changes", title: "5. Handle change requests" },
@@ -43,7 +44,7 @@ export default async function HelpPage() {
           <Section id="overview" title="What Approval Hub does">
             <p>
               Every marketing piece gets one home, one current version, and a clear yes or no from everyone who needs to sign off.
-              You create a <b>project</b>, add the <b>item</b> being reviewed (a flyer, a postcard, an email), upload <b>versions</b> of it,
+              You create a <b>project</b>, add the <b>item</b> being reviewed (a flyer, a postcard, an email, a letter), upload <b>versions</b> of it,
               and send each version to <b>approvers</b>. They click a link in their email, see the piece, and either approve it or tell you what to change.
               Everything that happens is recorded in the activity log.
             </p>
@@ -86,15 +87,56 @@ export default async function HelpPage() {
                 Word files are converted to an approximate preview and the original stays downloadable. PowerPoint files are download-only for now, so export to PDF when approvers need to see slides in the browser.
               </li>
               <li>
-                <b>Paste copy</b>: for emails and any text that needs sign-off. Paste the copy into the big box, add an optional subject line and from name, and save.
-                Approvers see it formatted like a page. Blank lines start new paragraphs. The next version opens pre-filled with the current text so you edit rather than retype.
+                <b>Write copy</b>: for letters, emails and any text that needs sign-off. A proper editor with headings, bold, italic, underline, bulleted and numbered lists, links and quotes.
+                Paste from Word, Outlook or a web page and the structure comes along. Add an optional subject line and from name for emails. Approvers see it formatted like a page.
+                The next version opens pre-filled with the current text so you edit rather than retype.
               </li>
             </ul>
             <p>
               Add a short <b>version note</b> (“Fixed logo size, updated dates”). It is shown to approvers and in the history.
             </p>
+            <h3 className="text-base text-ink">Word files with tracked changes or comments</h3>
             <p>
-              For copy versions there is a <b>Send me a test</b> button that emails you the text exactly as an email, so you can check it in a real inbox before sending it to approvers.
+              Before a Word file is uploaded the app looks inside it. If it still contains <b>tracked changes</b> (insertions, deletions, moves, formatting) or <b>open comments</b>, you get a
+              warning with the counts and who made them. The preview approvers see shows the text as if every change were accepted and every comment deleted, so they would be approving
+              wording nobody has settled on.
+            </p>
+            <p>
+              Fix it in Word: <b>Review → Accept → Accept All Changes and Stop Tracking</b>, then <b>Review → Delete → Delete All Comments in Document</b>, save, and upload that file.
+              If you must upload anyway, tick <b>Upload anyway</b>. The markup stays flagged on the item page with the list of changes, in the version history, and <b>Send for approval</b>
+              requires <b>Send anyway</b> before it goes out. Approvers see a note that the file contains markup and a link to the original. A clean file shows “Clean Word file”.
+            </p>
+            <h3 className="text-base text-ink">Copy versions: test, compare, download as Word</h3>
+            <ul>
+              <li>
+                <b>Send me a test</b> emails you the copy as a real email so you can check it in an inbox before approvers do.
+              </li>
+              <li>
+                <b>What changed since vN</b> appears under the preview from the second version on: added words in green, removed words in red with a strike-through, plus any subject or
+                from-name change. Approvers see the same comparison, opened by default, so on a revision they can read only what moved.
+              </li>
+              <li>
+                <b>Download Word</b> turns the copy into a .docx. With a letterhead uploaded in Settings the download uses its header, footer and styles; the menu also offers a plain document.
+                Approvers can download it too. Headings, bold, lists and links carry over; lists are written as indented paragraphs with bullets or numbers.
+              </li>
+            </ul>
+          </Section>
+
+          <Section id="word" title="Letters and Word documents: the recommended flow">
+            <p>Word documents that go out as the communication itself (a letter to customers, the board or the sales agents) work best like this:</p>
+            <ol className="list-decimal space-y-1.5 pl-5">
+              <li>Create the item and <b>write the copy in the app</b>, or paste the draft from Word. The words are what needs approval, so the words are what gets versioned.</li>
+              <li>
+                <b>Send for approval.</b> Approvers read it, pin notes to paragraphs and approve or request changes. They comment; they do not edit, so an approval always refers to exactly the text on that version.
+              </li>
+              <li>Make the edits as a <b>New version</b>. The old round is superseded, approvers are re-emailed, and the comparison shows them precisely what changed.</li>
+              <li>
+                When it is approved, <b>Download Word</b> on the letterhead, do any final layout in Word, and send it out. The approved text stays in the app as the record.
+              </li>
+            </ol>
+            <p>
+              Uploading the Word file itself is fine when the file is the deliverable and the text is settled; just make sure it is clean of tracked changes first. What the app deliberately does
+              not do is watch a shared OneDrive document: a version here is frozen the moment it is saved, which is the only way “everyone approved this” can mean anything.
             </p>
           </Section>
 
@@ -188,6 +230,12 @@ export default async function HelpPage() {
               <li><b>Team members</b>: add designers or owners by email. Remove drops them back to approver-only access.</li>
               <li><b>Defaults</b>: review window, planned rounds and revision days for new projects.</li>
               <li><b>Reminders</b>: toggle the halfway and due-date reminders; auto-complete projects when everything is approved.</li>
+              <li>
+                <b>Word letterhead</b>: upload any .docx. Its header, footer, page setup and styles are kept and the body is replaced with the copy when someone clicks Download Word. To keep
+                some body content (a date line, a signature block), put <code>{"{{body}}"}</code> on its own line where the copy should go. <code>{"{{date}}"}</code>,{" "}
+                <code>{"{{title}}"}</code>, <code>{"{{subject}}"}</code> and <code>{"{{version}}"}</code> are filled in wherever they appear, including headers and footers. Replace or remove
+                it any time; the Word file is generated at download time, so existing versions are unaffected.
+              </li>
               <li><b>Integrations</b>: shows whether email sending, file storage and email open tracking are configured.</li>
             </ul>
           </Section>
@@ -203,6 +251,16 @@ export default async function HelpPage() {
               </Q>
               <Q q="Can one project have several pieces?">
                 Yes. Add as many items as you need from the project page (a postcard, an email, a web banner). Each has its own versions and rounds. The project is Approved when all of them are.
+              </Q>
+              <Q q="Can approvers edit the text?">
+                No, on purpose. They comment and pin notes; the designer makes the change as a new version and the comparison shows exactly what moved. If approvers could edit, an approval
+                would no longer refer to a fixed text.
+              </Q>
+              <Q q="Why does it complain about my Word file?">
+                It still has tracked changes or comments. Accept or reject them and delete the comments in Word, save, and upload again. Section 2 has the exact menu items.
+              </Q>
+              <Q q="Can it follow a shared OneDrive document live?">
+                No. A version is frozen when it is saved so that an approval can refer to it. Write or paste the text here instead, and download it as Word when it is approved.
               </Q>
               <Q q="Where do the files live?">
                 In private cloud storage. Nothing is publicly downloadable; every file request checks that you are signed in and allowed to see that item.

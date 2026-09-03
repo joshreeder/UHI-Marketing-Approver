@@ -10,11 +10,16 @@ import { SendForApprovalForm } from "@/components/send-for-approval-form";
 import { RoundPill } from "@/components/status-pill";
 import { UploadVersionDialog } from "@/components/upload-version-dialog";
 import { SendTestButton } from "@/components/send-test-button";
+import { DownloadWordMenu } from "@/components/download-word-menu";
+import { CopyDiff } from "@/components/copy-diff";
+import { DocxReviewNotice } from "@/components/docx-review-notice";
 import { VersionHistory } from "@/components/version-history";
 import { requireTeam } from "@/lib/auth/session";
 import { getItemDetail, listPastApproverEmails } from "@/lib/queries";
+import { getSettings } from "@/lib/settings";
 import { displayName, fmtDateTime, fmtRelative } from "@/lib/format";
-import { htmlToText, isCopyVersion } from "@/lib/copy";
+import { isCopyVersion } from "@/lib/copy";
+import { describeDocxReview } from "@/lib/docx-review";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -25,9 +30,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function ItemPage({ params }: { params: Promise<{ id: string }> }) {
   await requireTeam();
   const { id } = await params;
-  const [detail, pastApprovers] = await Promise.all([getItemDetail(id), listPastApproverEmails()]);
+  const [detail, pastApprovers, settings] = await Promise.all([getItemDetail(id), listPastApproverEmails(), getSettings()]);
   if (!detail) notFound();
   const { item, project, versions, current, activity } = detail;
+  const previous = versions[1] ?? null;
+  const showDiff = !!current && !!previous && isCopyVersion(current) && isCopyVersion(previous);
+  const markup = describeDocxReview(current?.docxReview);
   const round = current?.round ?? null;
   const approved = round?.approvals.filter((a) => a.status === "approved").length ?? 0;
   const total = round?.approvals.length ?? 0;
@@ -58,7 +66,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
             defaultMode={current && isCopyVersion(current) ? "copy" : "file"}
             initialCopy={
               current && isCopyVersion(current)
-                ? { subject: current.emailSubject ?? "", fromName: current.emailFromName ?? "", body: htmlToText(current.emailHtml ?? "") }
+                ? { subject: current.emailSubject ?? "", fromName: current.emailFromName ?? "", body: current.emailHtml ?? "" }
                 : undefined
             }
           />
@@ -68,7 +76,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
       {!current ? (
         <div className="rounded-xl border border-dashed border-line bg-white px-6 py-16 text-center">
           <p className="text-sm font-medium text-ink">No versions yet</p>
-          <p className="mt-1 text-sm text-slate">Upload a PDF or image, or paste email copy, to preview it here and send it for approval.</p>
+          <p className="mt-1 text-sm text-slate">Upload a PDF, Word file or image, or write the copy in the editor, to preview it here and send it for approval.</p>
           <div className="mt-4">
             <UploadVersionDialog itemId={item.id} nextNumber={1} willResend={false} />
           </div>
@@ -77,6 +85,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-6">
             <AnnotatedPreview version={current} pins={commentsToPins(current.comments)} canPin={false} />
+            {showDiff && previous ? <CopyDiff previous={previous} current={current} /> : null}
           </div>
 
           <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
@@ -93,10 +102,16 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                     Download
                   </Button>
                 ) : isCopyVersion(current) ? (
-                  <SendTestButton versionId={current.id} />
+                  <span className="flex flex-wrap justify-end gap-1">
+                    <DownloadWordMenu versionId={current.id} hasLetterhead={!!settings.letterhead} />
+                    <SendTestButton versionId={current.id} />
+                  </span>
                 ) : null}
               </div>
               {current.note ? <p className="mt-3 rounded-lg bg-canvas px-3 py-2 text-sm text-ink">{current.note}</p> : null}
+              {current.docxReview ? (
+                <DocxReviewNotice review={current.docxReview} fileName={current.fileName} downloadHref={`/api/files/${current.id}?download=1`} audience="team" showClean className="mt-3" />
+              ) : null}
             </section>
 
             {round ? (
@@ -127,7 +142,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
               <section className="rounded-xl border border-line bg-white p-5">
                 <h2 className="text-sm font-medium text-ink">Send for approval</h2>
                 <p className="mb-3 mt-1 text-xs text-slate">Each approver gets an email with a personal link to this version.</p>
-                <SendForApprovalForm versionId={current.id} defaultWindow={windowDays} pastApprovers={pastApprovers} />
+                <SendForApprovalForm versionId={current.id} defaultWindow={windowDays} pastApprovers={pastApprovers} markupWarning={markup} />
               </section>
             )}
           </aside>

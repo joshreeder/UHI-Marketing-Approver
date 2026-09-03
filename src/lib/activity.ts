@@ -24,7 +24,9 @@ export type ActivityType =
   | "reminder_sent"
   | "email_failed"
   | "test_email_sent"
-  | "email_opened";
+  | "email_opened"
+  | "docx_exported"
+  | "docx_markup_sent_anyway";
 
 export async function logActivity(input: {
   projectId: string;
@@ -99,6 +101,10 @@ export function describeActivity(a: {
       return `${who} sent a test email of ${v} to ${typeof m.to === "string" ? m.to : "themselves"}`;
     case "email_opened":
       return `${who} opened the email for ${v}`;
+    case "docx_exported":
+      return `${who} downloaded ${v} as a Word document${m.letterhead ? " on letterhead" : ""}`;
+    case "docx_markup_sent_anyway":
+      return `${who} sent ${v} for approval with ${typeof m.summary === "string" ? m.summary : "unresolved tracked changes"} still in the file`;
     default:
       return a.type.replace(/_/g, " ");
   }
