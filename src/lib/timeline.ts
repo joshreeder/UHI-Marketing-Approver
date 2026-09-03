@@ -1,6 +1,7 @@
-import { differenceInCalendarDays, startOfDay } from "date-fns";
+import { differenceInCalendarDays } from "date-fns";
 import { buildSchedule, type Segment } from "@/lib/schedule";
 import { parseDateOnly } from "@/lib/format";
+import { todayInTz } from "@/lib/tz";
 import type { ProjectStatus, RoundStatus } from "@/lib/db/schema";
 
 export type ActualRound = {
@@ -43,7 +44,7 @@ export type TimelineProjectInput = {
 
 /** Builds one Gantt row: plan from the schedule math, actual rounds overlaid, drift computed. */
 export function buildTimelineRow(p: TimelineProjectInput, now = new Date()): TimelineRow {
-  const today = startOfDay(now);
+  const today = todayInTz(undefined, now);
   const start = parseDateOnly(p.startDate);
   const due = parseDateOnly(p.dueDate);
   const schedule = start ? buildSchedule({ startDate: start, dueDate: due, plannedRounds: p.plannedRounds, reviewWindowDays: p.reviewWindowDays, revisionDays: p.revisionDays }) : null;
@@ -62,7 +63,7 @@ export function buildTimelineRow(p: TimelineProjectInput, now = new Date()): Tim
     const reviews = planned.filter((s) => s.kind === "review");
     const last = actual[actual.length - 1];
     const plan = reviews[Math.min(actual.length, reviews.length) - 1];
-    if (plan) driftDays = differenceInCalendarDays(startOfDay(last.end), plan.end);
+    if (plan) driftDays = differenceInCalendarDays(todayInTz(undefined, last.end), plan.end);
   }
 
   const closed = p.status === "done" || p.status === "cancelled" || p.status === "on_hold" || p.status === "approved";
@@ -85,7 +86,7 @@ export function buildTimelineRow(p: TimelineProjectInput, now = new Date()): Tim
 
 /** Date window that comfortably contains every row, today included. */
 export function timelineRange(rows: TimelineRow[], now = new Date()): { from: Date; to: Date } {
-  const today = startOfDay(now);
+  const today = todayInTz(undefined, now);
   let min = today.getTime();
   let max = today.getTime();
   for (const r of rows) {

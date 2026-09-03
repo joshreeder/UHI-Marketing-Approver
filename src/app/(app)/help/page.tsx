@@ -235,6 +235,7 @@ export default async function HelpPage() {
             <ul>
               <li><b>Team members</b>: add designers or owners by email. Remove drops them back to approver-only access.</li>
               <li><b>Defaults</b>: review window, planned rounds and revision days for new projects.</li>
+              <li><b>Time zone</b>: every date, time and due date in the app and in emails is shown in this zone (Mountain by default). Change it if the team moves.</li>
               <li><b>Reminders</b>: toggle the halfway and due-date reminders; auto-complete projects when everything is approved.</li>
               <li>
                 <b>Word letterhead</b>: upload any .docx. Its header, footer, page setup and styles are kept and the body is replaced with the copy when someone clicks Download Word. To keep

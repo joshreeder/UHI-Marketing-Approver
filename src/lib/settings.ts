@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { settings } from "@/lib/db/schema";
+import { DEFAULT_TIME_ZONE, isValidTimeZone, setTimeZone } from "@/lib/tz";
 
 export const appSettingsSchema = z.object({
   defaults: z.object({
@@ -15,6 +16,8 @@ export const appSettingsSchema = z.object({
     dueDateEnabled: z.boolean().default(true),
   }),
   autoCompleteOnApproval: z.boolean().default(false),
+  /** IANA zone every date and time is shown in (server runs in UTC). */
+  timeZone: z.string().refine(isValidTimeZone, "Unknown time zone").default(DEFAULT_TIME_ZONE),
   /** Text printed on the on-screen letterhead page (the Word download uses the real letterhead file). */
   letter: z
     .object({
@@ -49,7 +52,9 @@ const KEY = "app";
 export async function getSettings(): Promise<AppSettings> {
   const rows = await db.select().from(settings).where(eq(settings.key, KEY)).limit(1);
   const parsed = appSettingsSchema.safeParse(rows[0]?.value ?? {});
-  return parsed.success ? parsed.data : DEFAULT_SETTINGS;
+  const result = parsed.success ? parsed.data : DEFAULT_SETTINGS;
+  setTimeZone(result.timeZone);
+  return result;
 }
 
 export async function saveSettings(next: AppSettings) {

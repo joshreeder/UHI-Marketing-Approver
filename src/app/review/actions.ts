@@ -12,6 +12,7 @@ import { logActivity } from "@/lib/activity";
 import { sendEmail } from "@/lib/email/send";
 import { ApprovalRequestEmail } from "@/lib/email/templates";
 import { displayName, fmtDueLong } from "@/lib/format";
+import { getSettings } from "@/lib/settings";
 
 export type DecisionState = { error?: string; done?: "approved" | "changes_requested" };
 
@@ -91,6 +92,7 @@ export async function resendApproverLink(_prev: ResendState, formData: FormData)
   // Always respond the same way so the form cannot be used to probe who is an approver.
   if (!itemId.success) return { ok: true };
 
+  await getSettings();
   const detail = await getItemDetail(itemId.data);
   const round = detail?.current?.round;
   const [user] = await db.select().from(users).where(eq(users.email, email.data)).limit(1);

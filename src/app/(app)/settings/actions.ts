@@ -51,6 +51,7 @@ export async function saveDefaults(_prev: SettingsState, formData: FormData): Pr
       dueDateEnabled: formData.get("dueDateEnabled") === "on",
     },
     autoCompleteOnApproval: formData.get("autoCompleteOnApproval") === "on",
+    timeZone: String(formData.get("timeZone") ?? "").trim() || current.timeZone,
     letter: {
       companyName: String(formData.get("letterCompanyName") ?? "").trim() || "United Heritage Insurance",
       addressLine: String(formData.get("letterAddressLine") ?? "").trim(),
@@ -58,7 +59,7 @@ export async function saveDefaults(_prev: SettingsState, formData: FormData): Pr
     },
     letterhead: current.letterhead,
   });
-  if (!parsed.success) return { error: "Check the numbers: review window 1–60, rounds 1–20, revision 0–60." };
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the numbers: review window 1–60, rounds 1–20, revision 0–60." };
   await saveSettings({ ...current, ...parsed.data });
   revalidatePath("/settings");
   revalidatePath("/projects/new");

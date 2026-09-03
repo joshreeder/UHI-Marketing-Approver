@@ -1,5 +1,6 @@
 import type { ProjectStatus, RoundStatus } from "@/lib/db/schema";
 import { parseDateOnly } from "@/lib/format";
+import { todayInTz } from "@/lib/tz";
 
 export const MANUAL_STATUSES: ProjectStatus[] = ["done", "on_hold", "cancelled"];
 
@@ -57,7 +58,7 @@ export function deriveProjectStatus(
   if (MANUAL_STATUSES.includes(project.status)) return project.status;
 
   const start = parseDateOnly(project.startDate);
-  const started = !start || start.getTime() <= now.getTime();
+  const started = !start || start.getTime() <= todayInTz(undefined, now).getTime();
 
   if (items.length === 0 || items.every((i) => !i.hasVersion)) {
     return started ? "in_progress" : "not_started";

@@ -68,6 +68,7 @@ type StartRoundInput = {
  * scoped token), emails everyone, and logs activity. Returns the round id.
  */
 export async function startRound(input: StartRoundInput): Promise<{ roundId: string; sent: number; failed: string[] }> {
+  await getSettings(); // loads the company time zone used in email dates
   const { version, item, project } = await versionContext(input.versionId);
   const existing = await db.select().from(reviewRounds).where(eq(reviewRounds.versionId, version.id)).limit(1);
   if (existing[0]) throw new Error("This version was already sent for approval.");
@@ -179,6 +180,7 @@ export async function sendReminder(
   approvalId: string,
   opts: { kind: "nudge" | "halfway" | "due"; actor?: User | null },
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  await getSettings();
   const a = await db.query.approvals.findFirst({
     where: eq(approvals.id, approvalId),
     with: { user: true, round: { with: { version: { with: { item: { with: { project: true } } } } } } },

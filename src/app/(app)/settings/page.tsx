@@ -4,6 +4,7 @@ import { requireOwner } from "@/lib/auth/session";
 import { listTeamMembers } from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
 import { env } from "@/lib/env";
+import { utcHourInTz } from "@/lib/tz";
 import { DefaultsForm, TeamForm } from "./forms";
 import { LetterheadForm } from "@/components/letterhead-form";
 import { removeTeamMember } from "./actions";
@@ -56,7 +57,7 @@ export default async function SettingsPage() {
         <div className="space-y-6">
           <section className="rounded-xl border border-line bg-white p-5">
             <h2 className="text-sm font-medium text-ink">Defaults and reminders</h2>
-            <p className="mb-4 text-xs text-slate">New projects start with these. Reminders go out daily at 8 am Mountain.</p>
+            <p className="mb-4 text-xs text-slate">New projects start with these. Automatic reminders go out once a day at {utcHourInTz(14, settings.timeZone)}.</p>
             <DefaultsForm settings={settings} />
           </section>
 

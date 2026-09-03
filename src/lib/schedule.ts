@@ -1,4 +1,5 @@
 import { addDays, differenceInCalendarDays, startOfDay } from "date-fns";
+import { todayInTz } from "@/lib/tz";
 
 /**
  * Pure scheduling math for planned review rounds (plan §4.8).
@@ -96,7 +97,7 @@ export function latestSafeStart(input: ScheduleInput): Date | null {
 
 /** Builds the planned schedule: design → review 1 → revise → review 2 … → approved. */
 export function buildSchedule(input: ScheduleInput): Schedule {
-  const start = toDate(input.startDate) ?? startOfDay(new Date());
+  const start = toDate(input.startDate) ?? todayInTz();
   const due = toDate(input.dueDate);
   const rounds = clampInt(input.plannedRounds, 0, 20);
   const rw = clampInt(input.reviewWindowDays, 0);

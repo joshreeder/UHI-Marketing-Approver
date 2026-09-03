@@ -1,6 +1,7 @@
 import { buildSchedule, scheduleWarning, type ScheduleInput, type SegmentKind } from "@/lib/schedule";
 import { fmtDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { todayInTz } from "@/lib/tz";
 
 const COLOR: Record<SegmentKind, string> = {
   design: "bg-navy",
@@ -17,7 +18,7 @@ export function ScheduleBar({ input, compact = false, className }: { input: Sche
   const s = buildSchedule(input);
   const total = Math.max(1, s.segments.reduce((n, seg) => n + seg.days, 0));
   const warning = scheduleWarning(s, fmtDate);
-  const today = new Date();
+  const today = todayInTz();
   const todayPct =
     today >= s.start && today <= s.end ? ((today.getTime() - s.start.getTime()) / (s.end.getTime() - s.start.getTime())) * 100 : null;
 

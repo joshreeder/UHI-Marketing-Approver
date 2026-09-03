@@ -121,7 +121,7 @@ searchable under Archive and can be restored.
 
 ## Settings (owner only)
 
-Team members, planning defaults, reminder toggles, auto-complete, the **Word letterhead**, and a read-out of whether email and file storage are configured.
+Team members, planning defaults, time zone (all dates and times, in the app and in emails), reminder toggles, auto-complete, the **Word letterhead**, and a read-out of whether email and file storage are configured.
 
 **Word letterhead**: upload any .docx. Its header, footer, page setup and styles are kept and the body is replaced with the copy when someone clicks
 Download Word. To keep some body content (a date line, a signature block), put `{{body}}` on its own line where the copy should go. `{{date}}`,

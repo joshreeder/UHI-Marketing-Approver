@@ -21,6 +21,7 @@ import {
 } from "@/lib/db/schema";
 import { deriveProjectStatus, MANUAL_STATUSES } from "@/lib/status";
 import { openCommentsFromVersions, type OpenComment } from "@/lib/resolutions";
+import { daysOverdue } from "@/lib/format";
 
 // Team ---------------------------------------------------------------------
 
@@ -123,9 +124,8 @@ export async function listDashboard(filter: DashboardFilter, currentUserId: stri
         if (!nextDue || round.dueAt < nextDue) nextDue = round.dueAt;
       }
     }
-    const due = p.dueDate ? new Date(`${p.dueDate}T00:00:00`) : null;
     const isOpen = !MANUAL_STATUSES.includes(status) && status !== "approved";
-    const overdueDays = due && isOpen ? Math.max(0, Math.floor((now.getTime() - due.getTime()) / 86_400_000)) : 0;
+    const overdueDays = p.dueDate && isOpen ? Math.max(0, daysOverdue(p.dueDate, now) ?? 0) : 0;
     const { items: _items, designer, ...project } = p;
     void _items;
     const thumbs: DashboardThumb[] = p.items.map((it) => {

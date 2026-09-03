@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormMessage } from "@/components/form-message";
 import type { AppSettings } from "@/lib/settings";
+import { TIME_ZONE_OPTIONS } from "@/lib/tz";
 import { addTeamMember, saveDefaults, type SettingsState } from "./actions";
 
 const selectClass = "h-8 rounded-lg border border-input bg-background px-2.5 text-sm";
@@ -62,6 +63,18 @@ export function DefaultsForm({ settings }: { settings: AppSettings }) {
           <input type="checkbox" name="autoCompleteOnApproval" defaultChecked={settings.autoCompleteOnApproval} className="size-4 accent-[var(--uh-navy)]" />
           Mark projects done automatically when every item is approved
         </label>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="timeZone">Time zone</Label>
+        <select id="timeZone" name="timeZone" defaultValue={settings.timeZone} className="h-8 w-full rounded-lg border border-input bg-background px-2.5 text-sm sm:w-80">
+          {TIME_ZONE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+          {TIME_ZONE_OPTIONS.some((o) => o.value === settings.timeZone) ? null : <option value={settings.timeZone}>{settings.timeZone}</option>}
+        </select>
+        <p className="text-xs text-slate">Every date, time, due date and reminder in the app and in emails uses this zone.</p>
       </div>
       <div className="space-y-2 rounded-lg bg-canvas/60 p-3">
         <p className="text-sm font-medium text-ink">Letter page</p>
