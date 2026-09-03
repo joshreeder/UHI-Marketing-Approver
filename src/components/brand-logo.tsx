@@ -7,7 +7,7 @@ export function BrandLogo({ href = "/", size = 44, className }: { href?: string 
     <Image
       src="/brand/united-heritage-logo.png"
       alt="United Heritage Insurance"
-      width={Math.round(size * 1.2)}
+      width={Math.round(size * 1.5625)}
       height={size}
       priority
       className={cn("h-auto", className)}
