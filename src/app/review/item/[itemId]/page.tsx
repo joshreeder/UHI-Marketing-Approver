@@ -30,6 +30,7 @@ export default async function ReviewItemPage({ params }: { params: Promise<{ ite
 
   const [detail, settings] = await Promise.all([getItemDetail(itemId), getSettings()]);
   if (!detail) redirect("/review/expired");
+  const settings = await getSettings();
   const { item, project, versions, current } = detail;
   const previous = versions[1] ?? null;
   const showDiff = !!current && !!previous && isCopyVersion(current) && isCopyVersion(previous);
@@ -88,7 +89,7 @@ export default async function ReviewItemPage({ params }: { params: Promise<{ ite
 
             {current.docxReview ? <DocxReviewNotice review={current.docxReview} fileName={current.fileName} downloadHref={`/api/files/${current.id}?download=1`} audience="approver" /> : null}
 
-            <AnnotatedPreview version={current} pins={commentsToPins(current.comments)} canPin={!!mine && !!round && (round.status === "pending" || round.status === "changes_requested")} approvalId={mine?.id ?? null} />
+            <AnnotatedPreview version={current} letter={settings.letter} pins={commentsToPins(current.comments)} canPin={!!mine && !!round && (round.status === "pending" || round.status === "changes_requested")} approvalId={mine?.id ?? null} />
 
             {showDiff && previous ? <CopyDiff previous={previous} current={current} defaultOpen /> : null}
 

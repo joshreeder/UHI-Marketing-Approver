@@ -1,19 +1,19 @@
 import Image from "next/image";
 import type { Version } from "@/lib/db/schema";
 import { copyBodyClass } from "@/lib/copy-styles";
-import { getSettings } from "@/lib/settings";
 import { fmtDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
+export type LetterInfo = { companyName: string; addressLine: string; contactLine: string };
+const DEFAULT_LETTER: LetterInfo = { companyName: "United Heritage Insurance", addressLine: "", contactLine: "" };
 
 /**
  * Renders a copy version. Email layout: From / Subject header. Letter layout: a US-Letter page on the
  * letterhead (logo, company line, footer from Settings) so the team sees roughly what the Word download
  * will look like without opening Word. HTML was sanitised on save, so it is safe to inject.
  */
-export async function CopyPreview({ version, className }: { version: Version; className?: string }) {
+export function CopyPreview({ version, letter = DEFAULT_LETTER, className }: { version: Version; letter?: LetterInfo; className?: string }) {
   if (version.copyLayout === "letter") {
-    const settings = await getSettings();
-    const letter = settings.letter;
     return (
       <div className={className}>
         <article

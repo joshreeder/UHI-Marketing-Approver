@@ -35,6 +35,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const [detail, pastApprovers, settings] = await Promise.all([getItemDetail(id), listPastApproverEmails(), getSettings()]);
   if (!detail) notFound();
+  const settings = await getSettings();
   const { item, project, versions, current, activity } = detail;
   const previous = versions[1] ?? null;
   const showDiff = !!current && !!previous && isCopyVersion(current) && isCopyVersion(previous);
@@ -88,7 +89,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
       ) : (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-6">
-            <AnnotatedPreview version={current} pins={commentsToPins(current.comments)} canPin={false} />
+            <AnnotatedPreview version={current} letter={settings.letter} pins={commentsToPins(current.comments)} canPin={false} />
             {showDiff && previous ? <CopyDiff previous={previous} current={current} /> : null}
           </div>
 

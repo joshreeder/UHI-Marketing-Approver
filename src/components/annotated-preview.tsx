@@ -1,7 +1,7 @@
 "use client";
 
 import { PdfViewer } from "./pdf-viewer";
-import { CopyPreview } from "./copy-preview";
+import { CopyPreview, type LetterInfo } from "./copy-preview";
 import { PinLayer } from "./pin-layer";
 import type { Pin } from "@/lib/pins";
 import { isCopyVersion } from "@/lib/copy";
@@ -17,12 +17,15 @@ export function AnnotatedPreview({
   pins,
   canPin,
   approvalId,
+  letter,
   className,
 }: {
   version: Version;
   pins: Pin[];
   canPin: boolean;
   approvalId?: string | null;
+  /** Company lines for the letterhead page preview (from Settings). */
+  letter?: LetterInfo;
   className?: string;
 }) {
   const layer = (pageNo: number | null) => <PinLayer pins={pins} pageNo={pageNo} canPin={canPin} versionId={version.id} approvalId={approvalId} />;
@@ -31,7 +34,7 @@ export function AnnotatedPreview({
     return (
       <div className={className}>
         <div className="relative mx-auto max-w-2xl">
-          <CopyPreview version={version} />
+          <CopyPreview version={version} letter={letter} />
           {layer(null)}
         </div>
         {canPin ? <PinHint /> : null}
